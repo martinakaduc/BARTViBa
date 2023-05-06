@@ -108,10 +108,13 @@ class Translator(BaseServiceSingleton):
                             if scores[j] > max_score or best_candidate is None:
                                 best_candidate = candidate
                                 max_score = scores[j]
-                        result[i] = best_candidate.text if (best_candidate is not None) else ' '
+
                         if (best_candidate is not None):
+                            result[i] = best_candidate.text
                             print("CANDIDATES", candidates, " >>>BEST CANDIDATE>>>", best_candidate.text)
                             print(f"word {best_candidate.text}: {max_score}")
+                        else:
+                            result[i] = ' '
                     if i > 0 and result[i-1].endswith("/@") or result[i-1].endswith("//@"):
                         result[i] = result[i].capitalize()
             output = result
