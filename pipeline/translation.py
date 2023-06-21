@@ -21,6 +21,10 @@ class Translator(BaseServiceSingleton):
                 output.append(w)
                 
         output = " ".join(output)
+        special_chars = [',', '.', ':', '?', '!']
+        for char in special_chars:
+            if char in output:
+                output = output.replace(' '+char, char)
         output = output[0].capitalize() + output[1:]
         return output
 
