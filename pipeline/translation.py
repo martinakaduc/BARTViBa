@@ -19,8 +19,7 @@ class Translator(BaseServiceSingleton):
         for w in words:
             if len(output) == 0 or output[-1] != w:
                 output.append(w)
-            else:
-                continue
+                
         output = " ".join(output)
         output = output[0].capitalize() + output[1:]
         return output

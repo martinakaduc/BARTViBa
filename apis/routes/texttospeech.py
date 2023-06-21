@@ -3,7 +3,8 @@ from fastapi import Response
 from GraphTranslation.apis.routes.base_route import BaseRoute
 import json
 from objects.data import DataSpeech, OutDataSpeech, DataSpeechDelete
-from TTS.main import generator, dct, generator_fm, dct_fm, hifigan, infer, output_sampling_rate
+from TTS.main import generator, dct, hifigan, infer, AudioConfig
+from TTS.praat_utils import change_gender
 import io
 from scipy.io.wavfile import write
 import base64
@@ -33,6 +34,7 @@ class CustomThread(threading.Thread):
 class SpeakRoute(BaseRoute):
     def __init__(self):
         super(SpeakRoute, self).__init__(prefix="/speak")
+        self.audio_config = AudioConfig()
 
     def join_threads_by_priority(self, threads, SPEECH_DATA, FILE_NUMBER, MP3_SIGNATURE):
         # Create a priority queue to store the threads
@@ -52,7 +54,7 @@ class SpeakRoute(BaseRoute):
 
     def take_thread_value(self, SPEECH_DATA, priority, FILE_NUMBER, MP3_SIGNATURE):
         print(f'Take Thread {priority}\'s value')
-        self.decode_audio(SPEECH_DATA[priority].speech, FILE_NUMBER, MP3_SIGNATURE)
+        self.decode_audio(SPEECH_DATA[priority], FILE_NUMBER, MP3_SIGNATURE)
 
     # improvement: use a thread pool to process the input text
     # partition the input text into 4 chunks and process them in parallel
@@ -75,23 +77,31 @@ class SpeakRoute(BaseRoute):
             jobs.append(tuple(sentences[start:end]))
         return jobs
 
-    def make_audio(self, y):
+    def make_audio(self, y, fm=False, is_v1=False):
         with torch.no_grad():
             audio = hifigan.forward(
                 y).cpu().squeeze().clamp(-1, 1).detach().numpy()
+            
+        if fm:
+            audio = change_gender(audio, 
+                          self.audio_config.output_sampling_rate, 
+                          **self.audio_config.female)
         audio = audio * 4
         bytes_wav = bytes()
         byte_io = io.BytesIO(bytes_wav)
-        write(byte_io, output_sampling_rate, audio)
-        wav_bytes = byte_io.read()
-        audio_data = base64.b64encode(wav_bytes).decode('UTF-8')
-        return audio_data
+        write(byte_io, self.audio_config.output_sampling_rate, audio)
+        
+        if is_v1:
+            wav_bytes = byte_io.read()
+            audio_data = base64.b64encode(wav_bytes).decode('UTF-8')
+            return audio_data
+        
+        return byte_io
 
-    def decode_audio(self, audio_data, file_num, MP3_SIGNATURE):
+    def decode_audio(self, byte_io, file_num, MP3_SIGNATURE):
         # Decode the base64-encoded string to bytes
-        wav_bytes = base64.b64decode(audio_data.encode('utf-8'))
-
-        wav_audio = AudioSegment.from_file(io.BytesIO(wav_bytes), format="wav")
+        wav_audio = AudioSegment.from_file(byte_io, 
+                                           format="wav")
         mp3_audio = io.BytesIO()
         wav_audio.export(mp3_audio, format="mp3")
 
@@ -104,32 +114,19 @@ class SpeakRoute(BaseRoute):
         if data.gender:
             gender = data.gender
         else:
-            gender = "both"
+            gender = "male"
+            
+        is_v1 = SPEECH_DATA is None and index is None
 
         # generate_wav_file should take a wav file as argument
         # process input_text into 4 chunks (multithreading)
-        if gender == "male":
-            y = infer(input_text, generator, dct)
-        elif gender == "female":
-            y = infer(input_text, generator_fm, dct_fm)
-        else:
-            y = infer(input_text, generator, dct)
-            y_fm = infer(input_text, generator_fm, dct_fm)
+        y = infer(input_text, generator, dct)
+        audio_data = self.make_audio(y, fm=(gender=="female"), is_v1=is_v1)
 
-        audio_data = self.make_audio(y)
-
-        if gender == "both":
-            audio_data_fm = self.make_audio(y_fm)
-            if SPEECH_DATA is None and index is None:
-                return OutDataSpeech(speech=audio_data, speech_fm=audio_data_fm)
+        if is_v1:
+            return OutDataSpeech(speech=audio_data)
             
-            SPEECH_DATA[index] = OutDataSpeech(speech=audio_data, speech_fm=audio_data_fm)
-            return
-        
-        if SPEECH_DATA is None and index is None:
-                return OutDataSpeech(speech=audio_data)
-            
-        SPEECH_DATA[index] = OutDataSpeech(speech=audio_data)
+        SPEECH_DATA[index] = audio_data
 
 
     async def generate_urls(self, data: DataSpeech, MP3_SIGNATURE):
@@ -157,7 +154,6 @@ class SpeakRoute(BaseRoute):
             SPEECH_DATA = dict()
             
             for prio, text in enumerate(job):
-                print("prio ", prio, "input ", input)
                 # Create a thread for each input
                 thread = CustomThread(target=self.translate_func, args=(
                     data, text, generator, dct, SPEECH_DATA, prio), priority=prio)
