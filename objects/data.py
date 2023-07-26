@@ -31,11 +31,13 @@ class DataSpeechDelete(BaseModel):
 class DataSpeech(BaseModel):
     text: str
     gender: Optional[str]
+    region: Optional[str]
 
-    def __init__(self, text: str, gender: str = None):
-        super(DataSpeech, self).__init__(text=text, gender=gender)
+    def __init__(self, text: str, gender: str = None, region: str = None):
+        super(DataSpeech, self).__init__(text=text, gender=gender, region=region)
         self.text = text
         self.gender = gender
+        self.region = region
         
         
 class OutDataSpeech(BaseModel):
