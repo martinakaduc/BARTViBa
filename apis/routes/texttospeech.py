@@ -17,7 +17,7 @@ import datetime
 import math
 
 MAX_THREADS = 1
-SERVER_URL = "https://bahnar.dscilab.com:20007"
+SERVER_URL = "https://bahnar.dscilab.site:20007"
 # SERVER_URL = "http://localhost:8080"
 
 def current_datetime():
@@ -77,15 +77,14 @@ class SpeakRoute(BaseRoute):
             jobs.append(tuple(sentences[start:end]))
         return jobs
 
-    def make_audio(self, y, fm=False, is_v1=False):
+    def make_audio(self, y, gender="male", region="binhdinh", is_v1=False):
         with torch.no_grad():
             audio = hifigan.forward(
                 y).cpu().squeeze().clamp(-1, 1).detach().numpy()
             
-        if fm:
-            audio = change_gender(audio, 
-                          self.audio_config.output_sampling_rate, 
-                          **self.audio_config.female)
+        audio = change_gender(audio, 
+                              self.audio_config.output_sampling_rate,
+                              **self.audio_config.get_config(gender=gender, region=region))
         audio = audio * 4
         bytes_wav = bytes()
         byte_io = io.BytesIO(bytes_wav)
@@ -115,13 +114,18 @@ class SpeakRoute(BaseRoute):
             gender = data.gender
         else:
             gender = "male"
+        
+        if data.region:
+            region = data.region
+        else:
+            region = "binhdinh"
             
         is_v1 = SPEECH_DATA is None and index is None
 
         # generate_wav_file should take a wav file as argument
         # process input_text into 4 chunks (multithreading)
         y = infer(input_text, generator, dct)
-        audio_data = self.make_audio(y, fm=(gender=="female"), is_v1=is_v1)
+        audio_data = self.make_audio(y, gender=gender, region=region, is_v1=is_v1)
 
         if is_v1:
             return OutDataSpeech(speech=audio_data)
@@ -182,6 +186,7 @@ class SpeakRoute(BaseRoute):
         @router.post("/vi_ba_v2")
         async def translate(data: DataSpeech, response: Response):
             MP3_SIGNATURE = current_datetime()
+            print(data)
             
             thread = threading.Thread(target=self.process_inputs, args=(data, generator, dct, MP3_SIGNATURE))
             thread.start()
