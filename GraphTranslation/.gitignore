@@ -6,3 +6,11 @@ __pycache__
 logs
 data/cache
 data/result
+.idea
+__pycache__
+*/__pycache__
+*/*/__pycache__
+.cache
+logs
+data/cache
+data/result
