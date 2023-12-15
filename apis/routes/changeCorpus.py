@@ -7,10 +7,13 @@ grand_dir = os.path.abspath(os.path.join(parent_dir, '..'))
 sys.path.extend([script_dir, parent_dir, grand_dir])
 
 from GraphTranslation.apis.routes.base_route import BaseRoute
-from objects.data import Corpus
-
+from objects.data import Corpus, statusMessage
 from pipeline.changeCorpus import ChangeCorpus
-from apis.routes.translation import TranslateRoute
+from apis.routes.VIBA_translation import VIBA_translate
+from apis.routes.BAVI_translation import BAVI_translate
+
+from GraphTranslation.common.languages import Languages
+
 
 class changeCorpus(BaseRoute):
     def __init__(self, area):
@@ -20,14 +23,15 @@ class changeCorpus(BaseRoute):
 
     def change_corpus_func(self, data: Corpus):
         self.pipeline(data.area)
-        TranslateRoute.changePipelineCorpus(area=data.area)
-        return "Changed corpus area to " + data.area
+        if Languages.SRC == 'VI':
+            VIBA_translate.changePipeline(area=data.area)
+        else:
+            BAVI_translate.changePipeline(area=data.area)
+        return statusMessage(200,f"Corpus changed successfully to {data.area}","", Languages.SRC == 'VI')
         
     def create_routes(self):
         router = self.router
 
-        @router.post("/vi_ba")
+        @router.post("/app")
         async def change_corpus(data: Corpus):
             return await self.wait(self.change_corpus_func, data)
-        
-#if __name__ == "__main__":

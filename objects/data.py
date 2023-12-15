@@ -12,18 +12,20 @@ class Data(BaseModel):
 
 class AddData(BaseModel):
     # word and translation are both array type
-    word: List[str]
-    translation: List[str]
-
-    def __init__(self, word, translation):
-        super(AddData, self).__init__(word=word, translation=translation)
-        self.word = word
-        self.translation = translation
-
-class ModifyData(BaseModel):
-    # word and translation are both array type
     word: str
     translation: str
+    fromVI: bool
+
+    def __init__(self, word, translation, src):
+        super(AddData, self).__init__(word=word, translation=translation, src=src)
+        self.word = word
+        self.translation = translation
+        self.src = src
+
+class ModifyData(BaseModel):
+    word: str
+    translation: str
+    fromVI: bool
 
     def __init__(self, word, translation):
         super(ModifyData, self).__init__(word=word, translation=translation)
@@ -39,19 +41,11 @@ class Corpus(BaseModel):
 
 class textInput(BaseModel):
     text: str
+    fromVI: bool
 
     def __init__(self, text: str):
         super(textInput, self).__init__(text=text)
         self.text = text
-
-class OutData(BaseModel):
-    src: str
-    tgt: str
-
-    def __init__(self, src: str, tgt: str = None):
-        super(OutData, self).__init__(src=src, tgt=tgt)
-        self.src = src
-        self.tgt = tgt
         
 class DataSpeechDelete(BaseModel):
     urls: List[str]
@@ -78,3 +72,17 @@ class OutDataSpeech(BaseModel):
         super(OutDataSpeech, self).__init__(speech=speech, speech_fm=speech_fm)
         self.speech = speech
         self.speech_fm = speech_fm
+
+
+class statusMessage(BaseModel):
+    status: int
+    message: str
+    data: str
+    fromVI: bool
+
+    def __init__(self, status: int, message: str, data: str, fromVI: bool):
+        super(statusMessage, self).__init__(status=status, message=message, data=data, fromVI=fromVI)
+        self.status = status
+        self.message = message
+        self.data = data
+        self.fromVI = fromVI

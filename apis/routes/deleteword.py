@@ -9,29 +9,40 @@ sys.path.extend([script_dir, parent_dir, grand_dir])
 
 from GraphTranslation.apis.routes.base_route import BaseRoute
 from objects.data import textInput
-
+import yaml
 # import Adder
 from pipeline.deleteword import DeleteWord
-from apis.routes.translation import TranslateRoute
+from apis.routes.VIBA_translation import VIBA_translate
+from apis.routes.VIBA_translation import VIBA_translate
+from GraphTranslation.common.languages import Languages
+from objects.data import statusMessage
 
 
 class deleteWord(BaseRoute):
     def __init__(self, area):
         super(deleteWord, self).__init__(prefix="/deleteword")
-        self.pipeline = DeleteWord(area)
         self.area = area
+        self.pipeline = DeleteWord(self.area)
 
     def delete_func(self, data: textInput):
-        success = self.pipeline(data.text)
+        with open('data/cache/info.yaml', 'r+') as f:
+            # if the "area" field is not KonTum then delete
+            dt = yaml.safe_load(f)
+            area = dt.get('area', None)
+            self.area = area
+        success = self.pipeline(data.text, data.fromVI)
         if success:
-            TranslateRoute.changePipelineAdjust(area=self.area)
-            return "Word deleted successfully"
+            if Languages.SRC == 'VI':
+                VIBA_translate.changePipelineRemoveGraph(area=self.area)
+            else:
+                VIBA_translate.changePipelineRemoveGraph(area=self.area)
+            return statusMessage(200,"Words deleted successfully","", Languages.SRC == 'VI')
         else:
-            return "No words found"
+            return statusMessage(400,"Words not found","",Languages.SRC == 'VI')
     
     def create_routes(self):
         router = self.router
 
-        @router.post("/vi_ba")
+        @router.post("/app")
         async def delete_word(data: textInput):
             return await self.wait(self.delete_func, data)
