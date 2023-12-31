@@ -33,7 +33,32 @@ class Translator(BaseServiceSingleton):
         for char in special_chars:
             if char in output:
                 output = output.replace(' '+char, char)
-        output = output[0].capitalize() + output[1:]
+        return output
+    
+    def printMenu(self, list_of_words: list, output: str):
+        # list_of_words is a tuple of [(TV, <current>), <list_of_translations>]
+        for items in list_of_words:
+            print(items)
+        print("Do you want to change the current translation of any of the following words?")
+        
+        for i, items in enumerate(list_of_words):
+            print("Current translation:", output)
+            current_word = items[0][1]
+            print("Current word:", current_word)
+            print("Candidates words:")
+            for index, candidate in enumerate(list(items[1])):
+                print(index, '-----', candidate)
+            choice = int(input("Choose index: "))
+            chosen_word = items[1][choice]
+            print("Chosen word:", chosen_word)
+            # update output
+            output = output.replace(current_word, chosen_word, 1)
+            # update list of words
+            item_list = list(items[0])
+            item_list[1] = chosen_word
+            list_of_words[i] = (tuple(item_list), items[1])
+
+        print("Current translation:", output)
         return output
 
     def __call__(self, text: str, model: str = "BART_CHUNK"):
@@ -43,24 +68,32 @@ class Translator(BaseServiceSingleton):
         if model in ["BART_CHUNK", "BART_CHUNK_NER_ONLY"]:
             s = time.time()
             sentence = self.graph_translator.nlp_core_service.annotate(text, language=Languages.SRC)
-            print("NLP CORE TIME", time.time() - s)
-
+            # print("NLP CORE TIME", time.time() - s)
+            # print("Mapped words", sentence.mapped_words)
             sentence = self.graph_translator.graph_service.add_info_node(sentence) # Update info about the NER
-            #print(sentence.mapped_words)
-            translation_graph = TranslationGraph(src_sent=sentence)
-            translation_graph.update_src_sentence()         # Vị trí cần thực hiện việc translate các token trong dictionary
             # print(sentence.mapped_words)
+            translation_graph = TranslationGraph(src_sent=sentence)
+
+            # print("Mapped words", sentence.mapped_words)
+            # print(type(sentence.mapped_words))
+
+            
             if model == "BART_CHUNK":
                 mapped_words = [w for w in translation_graph.src_sent if len(w.translations) > 0 or w.is_ner
                                 or w.is_end_sent or w.is_end_paragraph or w.is_punctuation or w.is_conjunction or w.is_in_dictionary]
             else:
                 mapped_words = [w for w in translation_graph.src_sent if w.is_ner
                                 or w.is_end_sent or w.is_end_paragraph or w.is_punctuation or w.is_conjunction]
+            # print("Mapped words", sentence.mapped_words)
+            # print(mapped_words)
+            control_mapped = translation_graph.update_src_sentence()         # Vị trí cần thực hiện việc translate các token trong dictionary
+            # print(control_mapped)
 
             result = []
-            src_mapping = [] # Có vẻ như không có dùng
+            src_mapping = []
             i = 0
-            while i < len(mapped_words) - 1:
+            while i < len(mapped_words):
+                #print("Result now is", result)
                 src_from_node = mapped_words[i]
                 if src_from_node.is_ner:    # Apply các token là NER (Name entity or Number)
                     ner_text = self.graph_translator.translate_ner(src_from_node) # Translating the dictionary in HERE
@@ -70,19 +103,22 @@ class Translator(BaseServiceSingleton):
                         result.append(ner_text)
                 else:   # Apply the token không phải NER
                     translations = src_from_node.dst_word
+                    #print("Translations", translations)
                     result.append(translations)
                     # if len(translations) == 1:
                     #     result.append(translations[0].text)
                     # else:
                     #     result.append(translations)
 
-                src_mapping.append([src_from_node]) # Có vẻ như không có dùng
+                src_mapping.append([src_from_node])
+                if(i == len(mapped_words) - 1):
+                    break
                 src_to_node = mapped_words[i + 1]
                 if src_from_node.end_index < src_to_node.begin_index - 1:
                     s = time.time()
                     chunk = translation_graph.src_sent.get_chunk(src_from_node.end_index,
-                                                                 src_to_node.begin_index - 1)
-                    
+                                                                 src_to_node.begin_index)
+                    print("Detected chunk:", chunk)
                     if chunk is not None:
                         chunk_text = chunk.text
                         chunk_text = chunk_text.replace("//@", "").replace("/@", "").replace("@", "").replace(".", "").strip()
@@ -92,7 +128,7 @@ class Translator(BaseServiceSingleton):
                             print(f"CHUNK TRANSLATE {chunk.text} -> {translated_chunk} : {time.time() - s}")
                 i += 1
 
-            #print("Result before scoring", result)
+            print("Result before scoring", result)
             ## Phần dưới này không có tác dụng
             if len(result) >= 3:
                 for i in range(len(result)):
@@ -141,20 +177,48 @@ class Translator(BaseServiceSingleton):
                             result[i] = ' '
                     if i > 0 and result[i-1].endswith("/@") or result[i-1].endswith("//@"):
                         result[i] = result[i].capitalize()
-            print("Result after scoring", result)
+            #print("Result after scoring", result)
             output = result
-
+            # print("Output", output)
             output = "  ".join(output).replace("//@", "\n").replace("/@", ".").replace("@", "")
             while "  " in output or ". ." in output:
                 output = output.replace("  ", " ").replace(". .", ".")
-            return self.post_process(output.strip())
+            candidate_output = self.post_process(output.strip())
+
+            print("Our suggested candidate:", candidate_output)
+            # ask if user is happy with this candidate
+            # if not, ask for a correction
+
+            while True:
+                reply = input("Happy with this translation? y/n: ")
+                if reply=='y':
+                    break
+                else:
+                    choosable = False
+                    for items in control_mapped:
+                        if len(items[1]) > 1:
+                            choosable = True
+                            break
+                    # find words in control_mapped
+                    if choosable:
+                        candidate_output = self.printMenu(control_mapped, candidate_output)
+                    else:
+                        print("Sorry, that's the best we can do now")
+                        break
+                
+            output = candidate_output
+            output = output[0].capitalize() + output[1:]
+            return self.post_process(output)
+
         else:
             output = self.model_translator.translate(text)
+            output = output[0].capitalize() + output[1:]
             return self.post_process(output)
 
 
 if __name__ == "__main__":
     translator = Translator("GiaLai")
     # print(translator("abŭt krĕnh adrang"))
-    print(translator("B`ai bơ tho tho ̆ ng Vĩnh Thạch nan Vĩnh Thạch b`ai pơhrăm"))
-    # print(translator("pơ pơ pơ tơm chơchă bôl tơm blu ng"))
+    # print(translator("B`ai bơ tho tho ̆ ng Vĩnh Thạch. nan Vĩnh Thạch b`ai pơhrăm"))
+    translator("một chuỗi hành động các hành động thiết thực")
+    # print(translator("Cho một quả trầu cau. Hôm này trời đẹp"))

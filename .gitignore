@@ -1,6 +1,6 @@
 #data
 **/.env/
-pretrained
+pretrained/*
 __pycache__
 .idea
 */.idea
@@ -12,10 +12,9 @@ data/cache
 .DS_Store
 khangEnv/
 TTS/
-testvncore/
 virrosluo/
 app.py
 README.md
 logging/
 MyVenv/
-TTS/
+.vscode

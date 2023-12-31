@@ -1302,7 +1302,7 @@ class Sentence:
     def get_chunk(self, from_index: int, to_index: int):
         if from_index > to_index:
             return
-        words = [w for w in self.words if from_index <= w.begin_index and w.end_index <= to_index]
+        words = [w for w in self.words if from_index < w.begin_index and w.end_index < to_index]
         if len(words) > 0:
             return Chunk(words)
 
@@ -1364,16 +1364,24 @@ class Sentence:
     def mapped_words(self):
         return self.words
 
-    def update_mapped_words(self):
+    def update_mapped_words_list(self):
+        multi_translated_list = []
         for word in self.words:
             if '@' not in word.text:
+                myList = []
+                # key is word.text
                 for node in word.out_relations.values():
-                    #and (word.dst_word == '')
-                    if node.type == 'TRANSLATE' :
+                    if node.type == 'TRANSLATE':
+                        myList.append(node.dst.text)
                         word.dst_word = node.dst.text
                         for info in self.info:
                             if info['text'] == word.text:
                                 info['mapped_word'] = node.dst.text
+                
+                if len(myList) > 1:                    
+                    multi_translated_list.append(((word.text,word.dst_word), myList))
+            
+        return multi_translated_list
 
 
     @staticmethod
@@ -1488,7 +1496,8 @@ class TranslationGraph(Graph):
 
     def update_src_sentence(self):
         if self.src_sent is not None:
-            self.src_sent.update_mapped_words() # Update mapping word in here
+            multi_list = self.src_sent.update_mapped_words_list() # Update mapping word in here
+            return multi_list
 
     @staticmethod
     def update_sentence_relation(relation: Relation):

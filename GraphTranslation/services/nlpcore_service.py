@@ -11,6 +11,7 @@ from objects.graph import SentWord, Sentence, SyllableBasedSentence, SentCombine
 from GraphTranslation.services.base_service import BaseServiceSingleton
 from GraphTranslation.utils.utils import check_number
 
+import re
 # import conjunction
 
 class NLPCoreService(BaseServiceSingleton):
@@ -119,7 +120,6 @@ class SrcNLPCoreService(NLPCoreService):
         return set()
 
 
-
     @staticmethod
     def combine_ner(words: [SentWord]):
         new_words = []
@@ -184,7 +184,7 @@ class SrcNLPCoreService(NLPCoreService):
         new_list = []
         for token in list_wseg:
             if token['nerLabel'] == "O":
-                for idx, word in enumerate(token['form'].split("_")):
+                for word in token['form'].split("_"):
                     wordinfo = {key:value for key, value in token.items()}
                     wordinfo['index'] = len(new_list) + 1
                     wordinfo['form'] = word
@@ -193,11 +193,60 @@ class SrcNLPCoreService(NLPCoreService):
                 new_list.append(token)
         
         return new_list
+    
+    def split_punc(self, token):
+        # Define the pattern for splitting based on punctuation
+        pattern = r'([,."!?:]+|[^,."!?:]+)'
+
+        # Use re.findall to find all occurrences of the pattern in the token
+        split_string = re.findall(pattern, token)
+
+        result = []
+        for i in split_string:
+            if any([char in ',.:"!?' for char in i]): result += i
+            else: result += [i]
+
+        return result
+
+    def ba_annotate(self, paragraph):
+        output_list = []
+        format = {'index':0, 'form':"", 'posTag':"V", 'nerLabel':"O", 'head':0, 'depLabel':"root"}
+        for sentence in paragraph.split('.'):
+            sentence = sentence.strip()
+            temp_list = []
+
+            split_tokens = []
+            for token in [i for i in sentence.split(' ') if i != ""]:
+                split_tokens += self.split_punc(token)
+                
+            for idx, word in enumerate(split_tokens):
+                word_info = format.copy()
+                word_info['form'] = word
+                word_info['index'] = idx + 1
+                temp_list.append(word_info)
+            output_list.append(temp_list)
+        
+        # # loop items is output_list
+        # sentence_punc = ',.:"!?'
+        # for item in output_list:
+        #     # if form contains characters in sentece_punc --> seperate it into an output_list
+        #     if any([True for i in item if i['form'] in sentence_punc]):
+        #         temp_list = []
+        #         for idx, word in enumerate(item):
+        #             if word['form'] in sentence_punc:
+        #                 output_list.append(temp_list)
+        #                 temp_list = []
+        #             else:
+        #                 temp_list.append(word)
+        #         output_list.append(temp_list)
+        #         output_list.remove(item)
+        return output_list
 
     def _annotate(self, text):
-        text = text.strip()
-        for c in string.punctuation:
-            text = text.replace(c, f" {c} ")
+        if Languages.SRC == 'VI':
+            text = text.strip()
+            for c in string.punctuation:
+                text = text.replace(c, f" {c} ")
 
         while "\n\n" in text:
             text = text.replace("\n\n", "\n")
@@ -207,12 +256,17 @@ class SrcNLPCoreService(NLPCoreService):
             text += "."
         words = [{"form": "@", "nerLabel": "O", "posTag": "", "head": None, "index": 0}]
         for paragraph in paragraphs:
-            p_sentences = self.nlpcore_connector.annotate(text=paragraph)["sentences"] # Trả về NER và posTag of each token
+            if Languages.SRC == 'VI':
+                p_sentences = self.nlpcore_connector.annotate(text=paragraph)["sentences"] # Trả về NER và posTag of each token
+            else:
+                p_sentences = self.ba_annotate(paragraph)
 
             for sentence in p_sentences:
-                print("After CoreNLP segmentation: ", [f"{i['index']}:{i['form']}" for i in sentence])
-                sentence = self.NER_filter(sentence)
+                print("After segmentation: ", [f"{i['index']}:{i['form']}" for i in sentence])
+                if Languages.SRC == 'VI': 
+                    sentence = self.NER_filter(sentence)
                 print("After filter NER segmentation: ", [f"{i['index']}:{i['form']}" for i in sentence])
+
                 offset = len(words) - 1
                 for word in sentence:
                     word["index"] += offset
@@ -288,7 +342,6 @@ class DstNLPCoreService(NLPCoreService):
         return output
 
     def word_segmentation(self, text):
-
         text = " ".join(word_tokenize(text))
         text = f" {text} "
         original_text = text
