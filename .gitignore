@@ -11,9 +11,7 @@ data/cache
 .ipynb_checkpoints
 .DS_Store
 khangEnv/
-TTS/
 virrosluo/
-app.py
 README.md
 logging/
 MyVenv/
