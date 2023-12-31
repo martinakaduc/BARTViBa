@@ -17,7 +17,7 @@ import datetime
 import math
 
 MAX_THREADS = 1
-SERVER_URL = "https://bahnar.dscilab.site:20007"
+SERVER_URL = "https://bahnar.dscilab.com:20007"
 # SERVER_URL = "http://localhost:8080"
 
 def current_datetime():

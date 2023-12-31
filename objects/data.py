@@ -77,12 +77,14 @@ class OutDataSpeech(BaseModel):
 class statusMessage(BaseModel):
     status: int
     message: str
-    data: str
+    src: str
+    tgt: str
     fromVI: bool
 
-    def __init__(self, status: int, message: str, data: str, fromVI: bool):
-        super(statusMessage, self).__init__(status=status, message=message, data=data, fromVI=fromVI)
+    def __init__(self, status: int, message: str, src: str, tgt: str, fromVI: bool):
+        super(statusMessage, self).__init__(status=status, message=message, src=src, tgt=tgt, fromVI=fromVI)
         self.status = status
         self.message = message
-        self.data = data
+        self.src = src
+        self.tgt = tgt
         self.fromVI = fromVI

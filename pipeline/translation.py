@@ -184,31 +184,32 @@ class Translator(BaseServiceSingleton):
             while "  " in output or ". ." in output:
                 output = output.replace("  ", " ").replace(". .", ".")
             candidate_output = self.post_process(output.strip())
+            return candidate_output
 
-            print("Our suggested candidate:", candidate_output)
+#             print("Our suggested candidate:", candidate_output)
             # ask if user is happy with this candidate
             # if not, ask for a correction
 
-            while True:
-                reply = input("Happy with this translation? y/n: ")
-                if reply=='y':
-                    break
-                else:
-                    choosable = False
-                    for items in control_mapped:
-                        if len(items[1]) > 1:
-                            choosable = True
-                            break
-                    # find words in control_mapped
-                    if choosable:
-                        candidate_output = self.printMenu(control_mapped, candidate_output)
-                    else:
-                        print("Sorry, that's the best we can do now")
-                        break
+#             while True:
+#                 reply = input("Happy with this translation? y/n: ")
+#                 if reply=='y':
+#                     break
+#                 else:
+#                     choosable = False
+#                     for items in control_mapped:
+#                         if len(items[1]) > 1:
+#                             choosable = True
+#                             break
+#                     # find words in control_mapped
+#                     if choosable:
+#                         candidate_output = self.printMenu(control_mapped, candidate_output)
+#                     else:
+#                         print("Sorry, that's the best we can do now")
+#                         break
                 
-            output = candidate_output
-            output = output[0].capitalize() + output[1:]
-            return self.post_process(output)
+#             output = candidate_output
+#             output = output[0].capitalize() + output[1:]
+#             return self.post_process(output)
 
         else:
             output = self.model_translator.translate(text)

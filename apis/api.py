@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-#from fastapi.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles
 import os
 
 # from apis.routes.graph_translate import GraphTranslateRoute
 from apis.routes.VIBA_translation import VIBA_translate
-#from apis.routes.texttospeech import SpeakRoute
+from apis.routes.texttospeech import SpeakRoute
 from apis.routes.addword import addWord
 from apis.routes.update import updateWord
 from apis.routes.changeCorpus import changeCorpus
@@ -29,7 +29,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-#app.mount("/to-speech", StaticFiles(directory=os.path.abspath("to-speech")), name="to-speech")
+app.mount("/to-speech", StaticFiles(directory=os.path.abspath("to-speech")), name="to-speech")
 
 # app.include_router(GraphTranslateRoute().router)
 # read area.yaml file to check for current area. If KonTum then keep
@@ -92,7 +92,7 @@ with open("data/cache/info.yaml", "r") as f:
     print(f.read())
 
 app.include_router(VIBA_translate("KonTum").router)
-#app.include_router(SpeakRoute().router)
+app.include_router(SpeakRoute().router)
 app.include_router(addWord("KonTum").router)
 app.include_router(updateWord("KonTum").router)
 app.include_router(changeCorpus("KonTum").router)

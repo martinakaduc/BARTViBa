@@ -13,7 +13,7 @@ class VIBA_translate(BaseRoute):
     pipeline: Translator
 
     def __init__(self, area):
-        super(VIBA_translate, self).__init__(prefix="/translate-VIBA")
+        super(VIBA_translate, self).__init__(prefix="/translate")
         VIBA_translate.pipeline = Translator(area=area)
         VIBA_translate.area = area
         VIBA_translate.pipelineRev = reverseTrans(area=area)
@@ -58,7 +58,11 @@ class VIBA_translate(BaseRoute):
         #print("addresss of pipeline:", VIBA_translate.pipeline)
         out_str = VIBA_translate.pipeline(data.text, model=data.model)
         #print("Translating data")
-        return statusMessage(200, "Translated successfully", out_str, Languages.SRC == 'VI')
+        return statusMessage(status=200, 
+                             message="Translated successfully", 
+                             src=data.text, 
+                             tgt=out_str, 
+                             fromVI=(Languages.SRC == 'VI'))
     
     @staticmethod
     def changePipelineRemoveGraph(area: str):
@@ -147,7 +151,7 @@ class VIBA_translate(BaseRoute):
     def create_routes(self):
         router = self.router
 
-        @router.post("/app")
+        @router.post("/vi_ba")
         async def translate(data: Data):
             return await self.wait(VIBA_translate.translate_func, data)
 

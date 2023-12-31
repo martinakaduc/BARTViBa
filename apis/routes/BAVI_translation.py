@@ -15,7 +15,7 @@ class BAVI_translate(BaseRoute):
     pipeline: Translator
 
     def __init__(self, area):
-        super(BAVI_translate, self).__init__(prefix="/translate-BAVI")
+        super(BAVI_translate, self).__init__(prefix="/translate")
         BAVI_translate.pipeline = Translator(area=area)
         BAVI_translate.area = area
         BAVI_translate.pipelineRev = reverseTrans(area=area)
@@ -60,7 +60,11 @@ class BAVI_translate(BaseRoute):
         #print("addresss of pipeline:", BAVI_translate.pipeline)
         out_str = BAVI_translate.pipeline(data.text, model=data.model)
         #print("Translating data")
-        return statusMessage(200, "Translated successfully", out_str, Languages.SRC == 'VI')
+        return statusMessage(status=200, 
+                             message="Translated successfully", 
+                             src=data.text, 
+                             tgt=out_str, 
+                             fromVI=(Languages.SRC == 'VI'))
     
     @staticmethod
     def changePipelineRemoveGraph(area: str):
@@ -110,7 +114,7 @@ class BAVI_translate(BaseRoute):
     def create_routes(self):
         router = self.router
 
-        @router.post("/app")
+        @router.post("/ba_vi")
         async def translate(data: Data):
             return await self.wait(BAVI_translate.translate_func, data)
 
