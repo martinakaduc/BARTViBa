@@ -23,7 +23,6 @@ class changeCorpus(BaseRoute):
 
     def change_corpus_func(self, data: Corpus):
         self.pipeline(data.area)
-        print("Something") # để coi nó chạy tới đây không
         if Languages.SRC == 'VI':
             VIBA_translate.changePipeline(area=data.area)
         else:
