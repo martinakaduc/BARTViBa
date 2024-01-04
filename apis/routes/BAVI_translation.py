@@ -22,6 +22,9 @@ class BAVI_translate(BaseRoute):
 
     def translate_func(data: Data):
         if Languages.SRC == 'VI':
+            BAVI_translate.pipeline = Translator(area=data.area)
+            BAVI_translate.area = data.area
+            BAVI_translate.pipelineRev = reverseTrans(area=data.area)
             BAVI_translate.pipelineRev()
             BAVI_translate.pipeline = Translator(BAVI_translate.area)
                 

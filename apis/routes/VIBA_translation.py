@@ -20,6 +20,9 @@ class VIBA_translate(BaseRoute):
 
     def translate_func(data: Data):
         if Languages.SRC == 'BA':
+            VIBA_translate.pipeline = Translator(area=data.area)
+            VIBA_translate.area = data.area
+            VIBA_translate.pipelineRev = reverseTrans(area=data.area)
             VIBA_translate.pipelineRev()
             VIBA_translate.pipeline = Translator(VIBA_translate.area)
 

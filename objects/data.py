@@ -2,11 +2,13 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 class Data(BaseModel):
+    area: str
     text: str
     model: Optional[str]
 
-    def __init__(self, text: str, model: str = None):
-        super(Data, self).__init__(text=text, model=model)
+    def __init__(self, area: str, text: str, model: str = None):
+        super(Data, self).__init__(area=area, text=text, model=model)
+        self.area = area
         self.text = text
         self.model = model
 

@@ -1,6 +1,6 @@
 #data
 **/.env/
-pretrained/*
+pretrained/
 __pycache__
 .idea
 */.idea
@@ -13,7 +13,6 @@ data/cache
 khangEnv/
 TTS/
 virrosluo/
-app.py
 README.md
 logging/
 MyVenv/
