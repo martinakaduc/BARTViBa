@@ -290,7 +290,7 @@ class SrcNLPCoreService(NLPCoreService):
             out.append(word)
             start = end + 1
         for word in out:
-            if word.head_id is None:
+            if word.head_id is None or word.head_id not in word_dict:
                 continue
             word.head = word_dict[word.head_id]
         return out
