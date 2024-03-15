@@ -12,6 +12,7 @@ from GraphTranslation.services.base_service import BaseServiceSingleton
 from GraphTranslation.utils.utils import check_number
 
 import re
+import json
 # import conjunction
 
 class NLPCoreService(BaseServiceSingleton):
@@ -66,7 +67,9 @@ class SrcNLPCoreService(NLPCoreService):
 
         self.viet2bana_dict = {}
         for viet_word, bahnaric_word in self.config.src_dst_mapping(area): # with format set: (viet_word, bahnaric_word)
-            self.viet2bana_dict[viet_word] = bahnaric_word # Can help problem when 1 bahnaric word with multiple vietnamese words
+            if viet_word not in self.viet2bana_dict:
+                self.viet2bana_dict[viet_word] = []
+            self.viet2bana_dict[viet_word].append(bahnaric_word) # Can help problem when 1 bahnaric word with multiple vietnamese words
         
         self.custom_ner = self.config.src_custom_ner()
 
@@ -151,7 +154,9 @@ class SrcNLPCoreService(NLPCoreService):
             for candidate in candidates:
                 if candidate.text in mapped_words:
                     new_words = [w for w in new_words if w not in candidate]
-                    candidate.dst_word = self.viet2bana_dict[candidate.text]
+                    candidate.dst_word = self.viet2bana_dict[candidate.text][0]
+                    candidate.dst_word_list = self.viet2bana_dict[candidate.text]
+                    ## Fix at this place
                     new_words.append(candidate)
         new_words.sort(key=lambda w: w.begin)
         # print("Word after sort:", [i.text for i in new_words])
@@ -242,6 +247,74 @@ class SrcNLPCoreService(NLPCoreService):
         #         output_list.remove(item)
         return output_list
 
+    ############### MY BAHNARIC TOKENIZER ###############
+
+    def separate_punc(self,sentence):
+        punctuations = "#$%&()*+,-./:;<=>?@[\]^`{}~"
+        for p in punctuations:
+            if p in sentence:
+                sentence = sentence.replace(p,' ' + p + ' ')
+        return sentence
+
+    def prepare_sentence(self,sentence):
+        sentence = sentence.lower()
+        sentence = self.separate_punc(sentence)
+        if sentence[-1:] != '|':
+            sentence = sentence + ' |'
+        sentence = ' '.join(sentence.split())
+        return sentence
+
+    def tokenize(self, sentence, learned_tokens):
+        if sentence == []:
+            return []
+        sentence = self.prepare_sentence(sentence)
+        for lt in learned_tokens:
+            new_token = lt[0]
+            old_token = lt[0].replace('_',' ')
+            sentence = sentence.replace(old_token,new_token)
+        return sentence.split()
+
+    def sort_tokens_list(self,tokens_freq):
+        sorted_tokens_freq = sorted(tokens_freq.items(), key=lambda item: (item[0].count('|') + 1, item[1]), reverse=True)
+        return sorted_tokens_freq
+
+    def ba_annotate_2(self, paragraph):
+        f_ba = open('tokenizer/tokens_ba.json')
+        
+        # returns JSON object as a dictionary
+        tokens_ba = json.load(f_ba)
+        
+        # Closing file
+        f_ba.close()
+
+        sorted_tokens_freq_ba = self.sort_tokens_list(tokens_ba)
+        # paragraph_after_tokenize = self.tokenize(paragraph, sorted_tokens_freq_ba)
+        # token_list = [token.replace('_',' ') for token in paragraph_after_tokenize]
+
+        output_list = []
+        format = {'index':0, 'form':"", 'posTag':"V", 'nerLabel':"O", 'head':0, 'depLabel':"root"}
+
+        for sentence in paragraph.split('.'):
+            sentence = sentence.strip()
+            temp_list = []
+
+            sent_after_tokenize = self.tokenize(sentence, sorted_tokens_freq_ba)
+            split_tokens = []
+            for token in sent_after_tokenize:
+                token = token.replace('_',' ').replace('|','')
+                if len(token) > 0:
+                    split_tokens.append(token)
+            
+            for idx, word in enumerate(split_tokens):
+                word_info = format.copy()
+                word_info['form'] = word
+                word_info['index'] = idx + 1
+                temp_list.append(word_info)
+            output_list.append(temp_list)
+        return output_list
+        
+    #############################################
+
     def _annotate(self, text):
         if Languages.SRC == 'VI':
             text = text.strip()
@@ -259,7 +332,7 @@ class SrcNLPCoreService(NLPCoreService):
             if Languages.SRC == 'VI':
                 p_sentences = self.nlpcore_connector.annotate(text=paragraph)["sentences"] # Trả về NER và posTag of each token
             else:
-                p_sentences = self.ba_annotate(paragraph)
+                p_sentences = self.ba_annotate_2(paragraph)
 
             for sentence in p_sentences:
                 print("After segmentation: ", [f"{i['index']}:{i['form']}" for i in sentence])

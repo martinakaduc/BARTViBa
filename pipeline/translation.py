@@ -7,6 +7,7 @@ grand_dir = os.path.abspath(os.path.join(parent_dir, '..'))
 sys.path.extend([script_dir, parent_dir, grand_dir])
 
 import time
+import json
 from GraphTranslation.services.base_service import BaseServiceSingleton
 from GraphTranslation.pipeline.translation import TranslationPipeline, Languages, TranslationGraph
 from pipeline.model_translate import ModelTranslator
@@ -19,6 +20,14 @@ class Translator(BaseServiceSingleton):
         self.graph_translator = TranslationPipeline(area)
         self.graph_translator.eval()
         self.area = area
+        
+        f_ba = open('word_disambiguation/neighbor_ba.json')
+        self.neighbor_ba = json.load(f_ba)
+        f_ba.close()
+        
+        f_vi = open('word_disambiguation/neighbor_vi.json')
+        self.neighbor_vi = json.load(f_vi)
+        f_vi.close()
 
     @staticmethod
     def post_process(text):
@@ -99,12 +108,20 @@ class Translator(BaseServiceSingleton):
                         result.append(ner_text.lower())
                     else:
                         result.append(ner_text)
-                else:
-                    translations = src_from_node.translations
-                    if len(translations) == 1:
-                        result.append(translations[0].text)
+                else:   # Apply the token không phải NER
+                    translations = []
+                    ## Cái này là em chữa cháy tạm thời một số edge cases gặp trục trặc khi tích hợp word disambiguation của em
+                    if src_from_node.text in ["@","/@","//@"]:
+                        pass
+                    elif src_from_node.text in [',', '.', ':', '?', '!']:
+                        result.append(src_from_node.text)
                     else:
-                        result.append(translations)
+                        translations = src_from_node.translations
+                        if len(translations) == 1:
+                            result.append(translations[0].text)
+                        else:
+                            result.append(translations)
+
 
                 src_mapping.append([src_from_node])
                 if(i == len(mapped_words) - 1):
@@ -124,51 +141,66 @@ class Translator(BaseServiceSingleton):
                             print(f"CHUNK TRANSLATE {chunk.text} -> {translated_chunk} : {time.time() - s}")
                 i += 1
 
+            result_text = [res if type(res) == str else [r.text for r in res] for res in result]
+            print("Result before scoring", result_text)
+
             if len(result) >= 3:
                 for i in range(len(result)):
                     if not isinstance(result[i], str):
                         scores = [0] * len(result[i])
-                        if i > 0:
-                            before_word = result[i - 1]
-                        else:
-                            before_word = None
-
-                        if i < len(result) - 1 and isinstance(result[i + 1], str):
-                            next_word = result[i + 1]
-                        else:
-                            next_word = None
-                        if next_word is None and before_word is None:
-                            result[i] = result[i][0]
+                        #### Choose by heuristic ####
+                        dist = 4
+                        coeff = [0.8,0.6,0.4,0.2]
+                        #############################
+                        before_word = []
+                        next_word = []
+                        idx = 0
+                        while i - idx > 0 and idx < dist and isinstance(result[i - idx - 1], str):
+                            before_word.append(result[i - idx - 1])
+                            idx += 1
+                        
+                        idx = 0
+                        while i + idx < len(result) - 1 and idx < dist and isinstance(result[i + idx + 1], str):
+                            next_word.append(result[i + idx + 1])
+                            idx += 1
+                        # print(before_word,", ",next_word)
+                        if next_word == [] and before_word == []:
+                            result[i] = result[i][0].text
                             continue
+
                         candidates = result[i]
                         max_score = 0
                         best_candidate = None
-                        if before_word is not None:
-                            before_word = before_word.split()[-1]
-                            before_word = self.graph_translator.graph_service.graph \
-                                .get_node_by_text(before_word, language=Languages.DST)
-                            
-                        if next_word is not None:
-                            next_word = next_word.split()[0]
-                            next_word = self.graph_translator.graph_service.graph\
-                                .get_node_by_text(next_word, language=Languages.DST)
-                            
-                        
-                        for j, candidate in enumerate(candidates):
-                            if before_word is not None and candidate.has_last_word(before_word, distance_range=(0, 3)):
-                                scores[j] += 1
-                            if next_word is not None and candidate.has_next_word(next_word, distance_range=(0, 3)):
-                                scores[j] += 1
-                            if scores[j] > max_score or best_candidate is None:
-                                best_candidate = candidate
+
+                        if Languages.SRC == 'VI':
+                            neighbor = self.neighbor_ba
+                        else:
+                            neighbor = self.neighbor_vi
+
+                        for j in range(len(candidates)):
+                            candidate_text = candidates[j].text
+                            if candidate_text not in neighbor:
+                                continue
+                            neighbor_list = list(neighbor[candidate_text].keys())
+                            for k in range(len(before_word)):
+                                if before_word[k] in neighbor_list:
+                                    scores[j] += coeff[k]
+                            for k in range(len(next_word)):
+                                if next_word[k] in neighbor_list:
+                                    scores[j] += coeff[k]
+                            if scores[j] > max_score:
                                 max_score = scores[j]
+                                best_candidate = candidates[j]
 
                         if (best_candidate is not None):
                             result[i] = best_candidate.text
-                            print("CANDIDATES", candidates, " >>>BEST CANDIDATE>>>", best_candidate.text)
-                            print(f"word {best_candidate.text}: {max_score}")
+                            print("CANDIDATES", [c.text for c in candidates], "\n>>> BEST CANDIDATE >>>", best_candidate.text)
+                            print(f"Word '{best_candidate.text}': {round(max_score,2)}")
                         else:
-                            result[i] = ' '
+                            if len(result[i]) == 0:
+                                result[i] = ''
+                            else:
+                                result[i] = result[i][0].text
                     if i > 0 and result[i-1].endswith("/@") or result[i-1].endswith("//@"):
                         result[i] = result[i].capitalize()
             #print("Result after scoring", result)
@@ -178,7 +210,7 @@ class Translator(BaseServiceSingleton):
             while "  " in output or ". ." in output:
                 output = output.replace("  ", " ").replace(". .", ".")
             return self.post_process(output.strip())
-        
+
         else:
             output = self.model_translator.translate(text)
             output = output[0].capitalize() + output[1:]
