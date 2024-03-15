@@ -20,6 +20,14 @@ class Translator(BaseServiceSingleton):
         self.graph_translator = TranslationPipeline(area)
         self.graph_translator.eval()
         self.area = area
+        
+        f_ba = open('word_disambiguation/neighbor_ba.json')
+        self.neighbor_ba = json.load(f_ba)
+        f_ba.close()
+        
+        f_vi = open('word_disambiguation/neighbor_vi.json')
+        self.neighbor_vi = json.load(f_vi)
+        f_vi.close()
 
     @staticmethod
     def post_process(text):
@@ -164,18 +172,10 @@ class Translator(BaseServiceSingleton):
                         max_score = 0
                         best_candidate = None
 
-                        f_ba = open('word_disambiguation/neighbor_ba.json')
-                        neighbor_ba = json.load(f_ba)
-                        f_ba.close()
-
-                        f_vi = open('word_disambiguation/neighbor_vi.json')
-                        neighbor_vi = json.load(f_vi)
-                        f_vi.close()
-                        
                         if Languages.SRC == 'VI':
-                            neighbor = neighbor_ba
+                            neighbor = self.neighbor_ba
                         else:
-                            neighbor = neighbor_vi
+                            neighbor = self.neighbor_vi
 
                         for j in range(len(candidates)):
                             candidate_text = candidates[j].text
