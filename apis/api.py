@@ -32,7 +32,7 @@ app.add_middleware(
 app.mount("/to-speech", StaticFiles(directory=os.path.abspath("to-speech")), name="to-speech")
 
 # app.include_router(GraphTranslateRoute().router)
-# read area.yaml file to check for current area. If KonTum then keep
+# read area.yaml file to check for current area. If BinhDinh then keep
 # else delete current area.yaml file
 
 if not os.path.exists('data/cache/VIBA'):
@@ -42,10 +42,10 @@ if not os.path.exists('data/cache/BAVI'):
     os.mkdir('data/cache/BAVI/')
 
 delete = False
-determined_json_graph = 'data/cache/VIBA/{area}-graph.json'.format(area='KonTum')
+determined_json_graph = 'data/cache/VIBA/{area}-graph.json'.format(area='BinhDinh')
 if os.path.exists(determined_json_graph):
     with open('data/cache/info.yaml', 'r+') as f:
-        # if the "area" field is not KonTum then delete
+        # if the "area" field is not BinhDinh then delete
         data = yaml.safe_load(f)
         area = data.get('area', None)
         src = data.get('SRC', None)
@@ -57,13 +57,13 @@ if delete:
     if os.path.exists("data/cache/info.yaml"):
         os.remove("data/cache/info.yaml")
 
-yaml.dump({"area": "KonTum"}, open("data/cache/info.yaml", "w"))
+yaml.dump({"area": "BinhDinh"}, open("data/cache/info.yaml", "w"))
 # append SRC into info.yaml
 yaml.dump({"SRC": Languages.SRC}, open("data/cache/info.yaml", "a"))
 # append DST into info.yaml
 yaml.dump({"DST": Languages.DST}, open("data/cache/info.yaml", "a"))
 
-datapath = "data/" + 'KonTum/'
+datapath = "data/" + 'BinhDinh/'
 # count number of sentences in train, valid, test of the area
 with open(datapath + Config.src_monolingual_paths[0], "r", encoding='utf-8') as f1:
     src_train_count = len(f1.readlines())
@@ -91,10 +91,10 @@ with open("data/cache/info.yaml", "a") as f:
 with open("data/cache/info.yaml", "r") as f:
     print(f.read())
 
-app.include_router(VIBA_translate("KonTum").router)
+app.include_router(VIBA_translate("BinhDinh").router)
 app.include_router(SpeakRoute().router)
-app.include_router(addWord("KonTum").router)
-app.include_router(updateWord("KonTum").router)
-app.include_router(changeCorpus("KonTum").router)
-app.include_router(deleteWord("KonTum").router)
-app.include_router(BAVI_translate("KonTum").router)
+app.include_router(addWord("BinhDinh").router)
+app.include_router(updateWord("BinhDinh").router)
+app.include_router(changeCorpus("BinhDinh").router)
+app.include_router(deleteWord("BinhDinh").router)
+app.include_router(BAVI_translate("BinhDinh").router)

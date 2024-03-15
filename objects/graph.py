@@ -17,7 +17,10 @@ from GraphTranslation.config.config import Config
 
 class Word:
     def __init__(self, text, language: Languages, ner_label=None):
-        self.is_upper = False if text is None else (text[0].isupper() or (len(text) > 1 and text[1].isupper()))
+        try:
+            self.is_upper = False if not text else (text[0].isupper() or (len(text) > 1 and text[1].isupper()))
+        except:
+            print(text)
         self._text = text.lower() if text is not None else text
         self.language = language
         self._ner_label = ner_label
