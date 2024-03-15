@@ -108,12 +108,9 @@ class Translator(BaseServiceSingleton):
                     elif src_from_node.text in [',', '.', ':', '?', '!']:
                         result.append(src_from_node.text)
                     else:
-                        translations = src_from_node.dst_word_list
-                        for trans in src_from_node.direct_candidates:
-                            if trans.text not in translations:
-                                translations.append(trans.text)
+                        translations = src_from_node.translations
                         if len(translations) == 1:
-                            result.append(translations[0])
+                            result.append(translations[0].text)
                         else:
                             result.append(translations)
 
@@ -138,7 +135,8 @@ class Translator(BaseServiceSingleton):
                             print(f"CHUNK TRANSLATE {chunk.text} -> {translated_chunk} : {time.time() - s}")
                 i += 1
 
-            print("Result before scoring", result)
+            result_text = [res if type(res) == str else [r.text for r in res] for res in result]
+            print("Result before scoring", result_text)
 
             if len(result) >= 3:
                 for i in range(len(result)):
@@ -161,7 +159,7 @@ class Translator(BaseServiceSingleton):
                             idx += 1
                         # print(before_word,", ",next_word)
                         if next_word == [] and before_word == []:
-                            result[i] = result[i][0]
+                            result[i] = result[i][0].text
                             continue
 
                         candidates = result[i]
@@ -182,7 +180,7 @@ class Translator(BaseServiceSingleton):
                             neighbor = neighbor_vi
 
                         for j in range(len(candidates)):
-                            candidate_text = candidates[j]
+                            candidate_text = candidates[j].text
                             if candidate_text not in neighbor:
                                 continue
                             neighbor_list = list(neighbor[candidate_text].keys())
@@ -197,16 +195,16 @@ class Translator(BaseServiceSingleton):
                                 best_candidate = candidates[j]
 
                         if (best_candidate is not None):
-                            result[i] = best_candidate
-                            print("CANDIDATES", candidates, "\n>>> BEST CANDIDATE >>>", best_candidate)
-                            print(f"Word {best_candidate}: {round(max_score,2)}")
+                            result[i] = best_candidate.text
+                            print("CANDIDATES", [c.text for c in candidates], "\n>>> BEST CANDIDATE >>>", best_candidate.text)
+                            print(f"Word '{best_candidate.text}': {round(max_score,2)}")
                         else:
                             if len(result[i]) == 0:
                                 result[i] = ''
                             else:
-                                result[i] = result[i][0]
-                    # if i > 0 and result[i-1].endswith("/@") or result[i-1].endswith("//@"):
-                    #     result[i] = result[i].capitalize()
+                                result[i] = result[i][0].text
+                    if i > 0 and result[i-1].endswith("/@") or result[i-1].endswith("//@"):
+                        result[i] = result[i].capitalize()
             #print("Result after scoring", result)
             output = result
             # print("Output", output)

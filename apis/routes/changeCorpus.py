@@ -27,7 +27,7 @@ class changeCorpus(BaseRoute):
             VIBA_translate.changePipeline(area=data.area)
         else:
             BAVI_translate.changePipeline(area=data.area)
-        return statusMessage(200,f"Corpus changed successfully to {data.area}","", Languages.SRC == 'VI')
+        return statusMessage(200,f"Corpus changed successfully to {data.area}","","", Languages.SRC == 'VI')
         
     def create_routes(self):
         router = self.router
