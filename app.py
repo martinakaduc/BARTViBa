@@ -1,21 +1,11 @@
+import setproctitle
+setproctitle.setproctitle('bahnar_tts_nmt')
+
 import uvicorn
 from utils.logger import setup_logging
 
-HUY = "192.168.1.153"
-HUY_5G = "192.168.31.76"
-HCMUT1 = "10.128.147.168"
-HCMUT2 = "10.130.193.88"
-KHANG_5G = "192.168.1.4"
-PHONG_5G = "192.168.197.52"
-DAT = "192.168.1.12"
-
-
-def main():
-    setup_logging()
-    uvicorn.run("apis.api:app", host='localhost', port=6379, reload=False, log_level="debug",
-                workers=1, factory=False, loop="asyncio", timeout_keep_alive=60,
-                )
-    
 
 if __name__ == "__main__":
-    main()
+    setup_logging()
+    uvicorn.run("apis.api:app", host="0.0.0.0", port=8000, reload=False, log_level="debug", debug=False,
+                workers=1, factory=False, loop="asyncio", timeout_keep_alive=120)

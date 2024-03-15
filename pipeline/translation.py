@@ -24,16 +24,17 @@ class Translator(BaseServiceSingleton):
     @staticmethod
     def post_process(text):
         words = text.split()
-        # output = []
-        # for w in words:
-        #     if len(output) == 0 or output[-1] != w:
-        #         output.append(w)
+        output = []
+        for w in words:
+            if len(output) == 0 or output[-1] != w:
+                output.append(w)
                 
-        output = " ".join(words)
+        output = " ".join(output)
         special_chars = [',', '.', ':', '?', '!']
         for char in special_chars:
             if char in output:
                 output = output.replace(' '+char, char)
+        output = output[0].capitalize() + output[1:]
         return output
     
     def printMenu(self, list_of_words: list, output: str):
@@ -74,20 +75,17 @@ class Translator(BaseServiceSingleton):
             sentence = self.graph_translator.graph_service.add_info_node(sentence) # Update info about the NER
             # print(sentence.mapped_words)
             translation_graph = TranslationGraph(src_sent=sentence)
-
-            # print("Mapped words", sentence.mapped_words)
-            # print(type(sentence.mapped_words))
-
+            
+            control_mapped = translation_graph.update_src_sentence()         # Vị trí cần thực hiện việc translate các token trong dictionary
             
             if model == "BART_CHUNK":
                 mapped_words = [w for w in translation_graph.src_sent if len(w.translations) > 0 or w.is_ner
-                                or w.is_end_sent or w.is_end_paragraph or w.is_punctuation or w.is_conjunction or w.is_in_dictionary]
+                                or w.is_end_sent or w.is_end_paragraph or w.is_punctuation or w.is_conjunction]
             else:
                 mapped_words = [w for w in translation_graph.src_sent if w.is_ner
                                 or w.is_end_sent or w.is_end_paragraph or w.is_punctuation or w.is_conjunction]
             # print("Mapped words", sentence.mapped_words)
             # print(mapped_words)
-            control_mapped = translation_graph.update_src_sentence()         # Vị trí cần thực hiện việc translate các token trong dictionary
             # print(control_mapped)
 
             result = []

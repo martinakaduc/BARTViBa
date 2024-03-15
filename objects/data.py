@@ -59,11 +59,13 @@ class DataSpeechDelete(BaseModel):
 class DataSpeech(BaseModel):
     text: str
     gender: Optional[str]
+    region: Optional[str]
 
-    def __init__(self, text: str, gender: str = None):
-        super(DataSpeech, self).__init__(text=text, gender=gender)
+    def __init__(self, text: str, gender: str = None, region: str = None):
+        super(DataSpeech, self).__init__(text=text, gender=gender, region=region)
         self.text = text
         self.gender = gender
+        self.region = region
         
         
 class OutDataSpeech(BaseModel):
@@ -79,12 +81,14 @@ class OutDataSpeech(BaseModel):
 class statusMessage(BaseModel):
     status: int
     message: str
-    data: str
+    src: str
+    tgt: str
     fromVI: bool
 
-    def __init__(self, status: int, message: str, data: str, fromVI: bool):
-        super(statusMessage, self).__init__(status=status, message=message, data=data, fromVI=fromVI)
+    def __init__(self, status: int, message: str, src: str, tgt: str, fromVI: bool):
+        super(statusMessage, self).__init__(status=status, message=message, src=src, tgt=tgt, fromVI=fromVI)
         self.status = status
         self.message = message
-        self.data = data
+        self.src = src
+        self.tgt = tgt
         self.fromVI = fromVI
