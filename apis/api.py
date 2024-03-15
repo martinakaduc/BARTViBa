@@ -35,6 +35,10 @@ app.mount("/to-speech", StaticFiles(directory=os.path.abspath("to-speech")), nam
 # read area.yaml file to check for current area. If BinhDinh then keep
 # else delete current area.yaml file
 
+if not os.path.exists('data/cache/'):
+    os.mkdir('data/cache/')
+
+
 if not os.path.exists('data/cache/VIBA'):
     os.mkdir('data/cache/VIBA/')
 

@@ -328,6 +328,7 @@ class SentWord(Word):
         self.type = NodeType.SENT_WORD
 
         self.dst_word = ""
+        self.dst_word_list: List[Word] = []
 
     @property
     def original_upper(self):
@@ -425,7 +426,7 @@ class SentWord(Word):
 
     @property
     def is_in_dictionary(self):
-        return self.dst_word != ""
+        return self.dst_word_list != []
 
     @property
     def info(self):
