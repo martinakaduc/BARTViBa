@@ -183,9 +183,13 @@ class Translator(BaseServiceSingleton):
                                 continue
                             neighbor_list = list(neighbor[candidate_text].keys())
                             for k in range(len(before_word)):
+                                if before_word[k].isnumeric():
+                                    before_word[k] = 'NUM'
                                 if before_word[k] in neighbor_list:
                                     scores[j] += coeff[k]
                             for k in range(len(next_word)):
+                                if next_word[k].isnumeric():
+                                    next_word[k] = 'NUM'
                                 if next_word[k] in neighbor_list:
                                     scores[j] += coeff[k]
                             if scores[j] > max_score:
