@@ -20,6 +20,14 @@ class Translator(BaseServiceSingleton):
         self.graph_translator = TranslationPipeline(area)
         self.graph_translator.eval()
         self.area = area
+        
+        f_ba = open('word_disambiguation/neighbor_ba.json')
+        self.neighbor_ba = json.load(f_ba)
+        f_ba.close()
+        
+        f_vi = open('word_disambiguation/neighbor_vi.json')
+        self.neighbor_vi = json.load(f_vi)
+        f_vi.close()
 
     @staticmethod
     def post_process(text):
@@ -119,8 +127,6 @@ class Translator(BaseServiceSingleton):
                 if(i == len(mapped_words) - 1):
                     break
                 src_to_node = mapped_words[i + 1]
-                # print(src_from_node.text,"====",src_from_node.begin_index,",",src_from_node.end_index)
-                # print(src_to_node.text,"++++",src_to_node.begin_index,",",src_to_node.end_index)
                 if src_from_node.end_index < src_to_node.begin_index - 1:
                     s = time.time()
                     chunk = translation_graph.src_sent.get_chunk(src_from_node.end_index,
@@ -166,18 +172,10 @@ class Translator(BaseServiceSingleton):
                         max_score = 0
                         best_candidate = None
 
-                        f_ba = open('word_disambiguation/neighbor_ba.json')
-                        neighbor_ba = json.load(f_ba)
-                        f_ba.close()
-
-                        f_vi = open('word_disambiguation/neighbor_vi.json')
-                        neighbor_vi = json.load(f_vi)
-                        f_vi.close()
-                        
                         if Languages.SRC == 'VI':
-                            neighbor = neighbor_ba
+                            neighbor = self.neighbor_ba
                         else:
-                            neighbor = neighbor_vi
+                            neighbor = self.neighbor_vi
 
                         for j in range(len(candidates)):
                             candidate_text = candidates[j].text
@@ -215,32 +213,7 @@ class Translator(BaseServiceSingleton):
             output = "  ".join(output).replace("//@", "\n").replace("/@", ".").replace("@", "")
             while "  " in output or ". ." in output:
                 output = output.replace("  ", " ").replace(". .", ".")
-            candidate_output = self.post_process(output.strip())
-
-            print("Our suggested candidate:", candidate_output)
-            # ask if user is happy with this candidate
-            # if not, ask for a correction
-
-            # while True:
-            #     reply = input("Happy with this translation? y/n: ")
-            #     if reply=='y':
-            #         break
-            #     else:
-            #         choosable = False
-            #         for items in control_mapped:
-            #             if len(items[1]) > 1:
-            #                 choosable = True
-            #                 break
-            #         # find words in control_mapped
-            #         if choosable:
-            #             candidate_output = self.printMenu(control_mapped, candidate_output)
-            #         else:
-            #             print("Sorry, that's the best we can do now")
-            #             break
-                
-            output = candidate_output
-            output = output[0].capitalize() + output[1:]
-            return self.post_process(output)
+            return self.post_process(output.strip())
 
         else:
             output = self.model_translator.translate(text)
