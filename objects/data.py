@@ -2,13 +2,13 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 class Data(BaseModel):
-    area: str
+    region: str
     text: str
     model: Optional[str]
 
-    def __init__(self, area: str, text: str, model: str = None):
-        super(Data, self).__init__(area=area, text=text, model=model)
-        self.area = area
+    def __init__(self, text: str, region: str = "BinhDinh",  model: str = None):
+        super(Data, self).__init__(region=region, text=text, model=model)
+        self.region = region
         self.text = text
         self.model = model
 
@@ -35,11 +35,11 @@ class ModifyData(BaseModel):
         self.translation = translation
 
 class Corpus(BaseModel):
-    area: str
+    region: str
 
-    def __init__(self, area: str):
-        super(Corpus, self).__init__(area=area)
-        self.area = area
+    def __init__(self, region: str):
+        super(Corpus, self).__init__(region=region)
+        self.region = region
 
 class textInput(BaseModel):
     text: str

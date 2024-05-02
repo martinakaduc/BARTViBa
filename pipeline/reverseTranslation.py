@@ -16,8 +16,8 @@ from GraphTranslation.common.languages import Languages
 # app = Celery('addword', broker='redis://127.0.0.1/0', backend='redis://127.0.0.1/0')
 
 class reverseTrans(BaseServiceSingleton):
-    def __init__(self, area):
-        super(reverseTrans, self).__init__(area=area)
+    def __init__(self, region):
+        super(reverseTrans, self).__init__(region=region)
 
     def reverse_translation(self):
         for cls in dict(Singleton._instances).keys():
