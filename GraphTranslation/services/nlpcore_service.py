@@ -16,12 +16,12 @@ import json
 # import conjunction
 
 class NLPCoreService(BaseServiceSingleton):
-    def __init__(self,area):
-        super(NLPCoreService, self).__init__(area)
+    def __init__(self,region):
+        super(NLPCoreService, self).__init__(region)
         self.word_set = set() # ===> Load được trong config.py
         self.max_gram = self.config.max_gram
         self.custom_ner = {}
-        self.area = area
+        self.region = region
 
     @staticmethod
     def check_number(text):
@@ -58,15 +58,15 @@ class NLPCoreService(BaseServiceSingleton):
 
 
 class SrcNLPCoreService(NLPCoreService):
-    def __init__(self, area):
-        super(SrcNLPCoreService, self).__init__(area)
-        self.area = area
+    def __init__(self, region):
+        super(SrcNLPCoreService, self).__init__(region)
+        self.region = region
         self.nlpcore_connector = VnCoreNLP(address=self.config.vncorenlp_host, port=self.config.vncorenlp_port,
                                            annotators="wseg,ner")
-        self.word_set = self.config.src_word_set(area)
+        self.word_set = self.config.src_word_set(region)
 
         self.viet2bana_dict = {}
-        for viet_word, bahnaric_word in self.config.src_dst_mapping(area): # with format set: (viet_word, bahnaric_word)
+        for viet_word, bahnaric_word in self.config.src_dst_mapping(region): # with format set: (viet_word, bahnaric_word)
             if viet_word not in self.viet2bana_dict:
                 self.viet2bana_dict[viet_word] = []
             self.viet2bana_dict[viet_word].append(bahnaric_word) # Can help problem when 1 bahnaric word with multiple vietnamese words
@@ -370,12 +370,12 @@ class SrcNLPCoreService(NLPCoreService):
 
 
 class DstNLPCoreService(NLPCoreService):
-    def __init__(self, area):
-        super(DstNLPCoreService, self).__init__(area)
-        self.word_set = self.config.dst_word_set(area)
+    def __init__(self, region):
+        super(DstNLPCoreService, self).__init__(region)
+        self.word_set = self.config.dst_word_set(region)
         self.custom_ner = self.config.dst_custom_ner()
         self.language = Languages.DST
-        self.area = area
+        self.region = region
 
     def check_number(self, text):
         syllables = word_tokenize(text)
@@ -466,21 +466,21 @@ class DstNLPCoreService(NLPCoreService):
 
 
 class DictBasedSrcNLPCoreService(DstNLPCoreService):
-    def __init__(self, area):
-        super(DictBasedSrcNLPCoreService, self).__init__(area)
-        self.word_set = self.config.src_word_set(area)
+    def __init__(self, region):
+        super(DictBasedSrcNLPCoreService, self).__init__(region)
+        self.word_set = self.config.src_word_set(region)
         self.custom_ner = self.config.src_custom_ner()
         self.language = Languages.SRC
 
 
 class SyllableBasedDstNLPCoreService(DstNLPCoreService):
-    def __init__(self, area):
-        super(SyllableBasedDstNLPCoreService, self).__init__(area)
-        self.word_set = self.config.dst_word_set(area)
+    def __init__(self, region):
+        super(SyllableBasedDstNLPCoreService, self).__init__(region)
+        self.word_set = self.config.dst_word_set(region)
         self.custom_ner = self.config.dst_custom_ner()
         self.language = Languages.DST
         self.punctuation_set = set(string.punctuation) - set("'")
-        self.area = area
+        self.region = region
 
     def map_dictionary(self, text):
         text = text.lower()
@@ -564,12 +564,12 @@ class SyllableBasedDstNLPCoreService(DstNLPCoreService):
 
 
 class SyllableBasedSrcNLPCoreService(SyllableBasedDstNLPCoreService):
-    def __init__(self, area):
-        super(SyllableBasedSrcNLPCoreService, self).__init__(area)
-        self.word_set = self.config.src_word_set(area)
+    def __init__(self, region):
+        super(SyllableBasedSrcNLPCoreService, self).__init__(region)
+        self.word_set = self.config.src_word_set(region)
         self.custom_ner = self.config.src_custom_ner()
         self.language = Languages.SRC
-        self.area = area
+        self.region = region
 
 
 class CombinedSrcNLPCoreService(SyllableBasedSrcNLPCoreService):
@@ -611,15 +611,15 @@ class CombinedSrcNLPCoreService(SyllableBasedSrcNLPCoreService):
 
 
 class TranslationNLPCoreService(BaseServiceSingleton):
-    def __init__(self, area, is_train=False):
-        super(TranslationNLPCoreService, self).__init__(area)
-        self.src_service = SyllableBasedSrcNLPCoreService(area) if is_train else SrcNLPCoreService(area)
-        self.dst_service = SyllableBasedDstNLPCoreService(area)
-        self.src_dict_based_service = SyllableBasedSrcNLPCoreService(area)
-        self.area = area
+    def __init__(self, region, is_train=False):
+        super(TranslationNLPCoreService, self).__init__(region)
+        self.src_service = SyllableBasedSrcNLPCoreService(region) if is_train else SrcNLPCoreService(region)
+        self.dst_service = SyllableBasedDstNLPCoreService(region)
+        self.src_dict_based_service = SyllableBasedSrcNLPCoreService(region)
+        self.region = region
 
     def eval(self):
-        self.src_service = SrcNLPCoreService(self.area)
+        self.src_service = SrcNLPCoreService(self.region)
 
     def word_segmentation(self, text, language: Languages = Languages.SRC):
         if language == Languages.SRC:

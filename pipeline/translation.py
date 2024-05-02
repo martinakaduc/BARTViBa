@@ -14,12 +14,12 @@ from pipeline.model_translate import ModelTranslator
 from GraphTranslation.common.ner_labels import *
 
 class Translator(BaseServiceSingleton):
-    def __init__(self, area):
-        super(Translator, self).__init__(area)
-        self.model_translator = ModelTranslator(area)
-        self.graph_translator = TranslationPipeline(area)
+    def __init__(self, region):
+        super(Translator, self).__init__(region)
+        self.model_translator = ModelTranslator(region)
+        self.graph_translator = TranslationPipeline(region)
         self.graph_translator.eval()
-        self.area = area
+        self.region = region
         
         f_ba = open('word_disambiguation/neighbor_ba.json')
         self.neighbor_ba = json.load(f_ba)
@@ -207,9 +207,11 @@ class Translator(BaseServiceSingleton):
                                 result[i] = result[i][0].text
                     if i > 0 and result[i-1].endswith("/@") or result[i-1].endswith("//@"):
                         result[i] = result[i].capitalize()
-            #print("Result after scoring", result)
+            else:
+                result = [res if type(res) == str else res[0].text for res in result]
+                
             output = result
-            # print("Output", output)
+            print("Output", output)
             output = "  ".join(output).replace("//@", "\n").replace("/@", ".").replace("@", "")
             while "  " in output or ". ." in output:
                 output = output.replace("  ", " ").replace(". .", ".")

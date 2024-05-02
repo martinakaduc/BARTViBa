@@ -11,32 +11,32 @@ from GraphTranslation.config.config import Config
 from pipeline.translation import Translator
 
 class BAVI_translate(BaseRoute):
-    area: str
+    region: str
     pipeline: Translator
 
-    def __init__(self, area):
+    def __init__(self, region):
         super(BAVI_translate, self).__init__(prefix="/translate")
-        BAVI_translate.pipeline = Translator(area=area)
-        BAVI_translate.area = area
-        BAVI_translate.pipelineRev = reverseTrans(area=area)
+        BAVI_translate.pipeline = Translator(region=region)
+        BAVI_translate.region = region
+        BAVI_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
         if Languages.SRC == 'VI':
-            BAVI_translate.pipeline = Translator(area=data.area)
-            BAVI_translate.area = data.area
-            BAVI_translate.pipelineRev = reverseTrans(area=data.area)
+            BAVI_translate.pipeline = Translator(region=data.region)
+            BAVI_translate.region = data.region
+            BAVI_translate.pipelineRev = reverseTrans(region=data.region)
             BAVI_translate.pipelineRev()
-            BAVI_translate.pipeline = Translator(BAVI_translate.area)
+            BAVI_translate.pipeline = Translator(BAVI_translate.region)
                 
             if os.path.exists("data/cache/info.yaml"):
                 os.remove("data/cache/info.yaml")
                 with open("data/cache/info.yaml", "w") as f:
-                    yaml.dump({"area": BAVI_translate.area}, f)
+                    yaml.dump({"region": BAVI_translate.region}, f)
                     yaml.dump({"SRC": Languages.SRC}, f)
                     yaml.dump({"DST": Languages.DST}, f)
-                    # count number of sentences in train, valid, test of the area
-                    datapath = "data/" + BAVI_translate.area + '/'
-                    # count number of sentences in train, valid, test of the area
+                    # count number of sentences in train, valid, test of the region
+                    datapath = "data/" + BAVI_translate.region + '/'
+                    # count number of sentences in train, valid, test of the region
                     with open(datapath + Config.src_monolingual_paths[0], "r", encoding='utf-8') as f1:
                         src_train_count = len(f1.readlines())
                     with open(datapath + Config.src_monolingual_paths[1], "r", encoding='utf-8') as f2:
@@ -59,7 +59,7 @@ class BAVI_translate(BaseRoute):
                             "dst_test": dst_test_count
                         }, f)
                 print(open("data/cache/info.yaml", "r").read())
-        #print("current area:", BAVI_translate.area)
+        #print("current region:", BAVI_translate.region)
         #print("addresss of pipeline:", BAVI_translate.pipeline)
         out_str = BAVI_translate.pipeline(data.text, model=data.model)
         #print("Translating data")
@@ -70,21 +70,21 @@ class BAVI_translate(BaseRoute):
                              fromVI=(Languages.SRC == 'VI'))
     
     @staticmethod
-    def changePipelineRemoveGraph(area: str):
-        determined_json_graph = 'data/cache/BAVI/{area}-graph.json'.format(area=area)
+    def changePipelineRemoveGraph(region: str):
+        determined_json_graph = 'data/cache/BAVI/{region}-graph.json'.format(region=region)
         if os.path.exists(determined_json_graph):
             os.remove(determined_json_graph)
         
         if os.path.exists("data/cache/info.yaml"):
             os.remove("data/cache/info.yaml")
             with open("data/cache/info.yaml", "w") as f:
-                yaml.dump({"area": BAVI_translate.area}, f)
+                yaml.dump({"region": BAVI_translate.region}, f)
                 yaml.dump({"SRC": Languages.SRC}, f)
                 yaml.dump({"DST": Languages.DST}, f)
 
-                # count number of sentences in train, valid, test of the area
-                datapath = "data/" + BAVI_translate.area + '/'
-                # count number of sentences in train, valid, test of the area
+                # count number of sentences in train, valid, test of the region
+                datapath = "data/" + BAVI_translate.region + '/'
+                # count number of sentences in train, valid, test of the region
                 with open(datapath + Config.src_monolingual_paths[0], "r", encoding='utf-8') as f1:
                     src_train_count = len(f1.readlines())
                 with open(datapath + Config.src_monolingual_paths[1], "r", encoding='utf-8') as f2:
@@ -110,8 +110,8 @@ class BAVI_translate(BaseRoute):
 
             print(open("data/cache/info.yaml", "r").read())
         
-        BAVI_translate.area = area
-        BAVI_translate.pipeline = Translator(area)
+        BAVI_translate.region = region
+        BAVI_translate.pipeline = Translator(region)
     
     
     def create_routes(self):

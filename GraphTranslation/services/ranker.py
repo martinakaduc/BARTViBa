@@ -8,13 +8,13 @@ from GraphTranslation.services.base_service import BaseServiceSingleton
 
 
 class Ranker(BaseServiceSingleton):
-    def __init__(self, area):
+    def __init__(self, region):
         super(Ranker, self).__init__()
         self.index = None
         self.dst_data = None
         self.src_data = None
-        self.graph_service = GraphService(area)
-        self.area = area
+        self.graph_service = GraphService(region)
+        self.region = region
         # self.load_from_parallel_corpus()
 
     # def load_from_parallel_corpus(self):

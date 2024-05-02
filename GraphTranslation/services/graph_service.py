@@ -20,13 +20,13 @@ from GraphTranslation.services.nlpcore_service import TranslationNLPCoreService
 
 
 class GraphService(BaseServiceSingleton):
-    def __init__(self, area):
-        super(GraphService, self).__init__(area)
+    def __init__(self, region):
+        super(GraphService, self).__init__(region)
         self.graph = Graph()
-        self.nlp_core_service = TranslationNLPCoreService(area, is_train=True)
+        self.nlp_core_service = TranslationNLPCoreService(region, is_train=True)
         self.src_re = None
         self.load_graph()
-        self.area = area
+        self.region = region
 
     def eval(self):
         self.nlp_core_service.eval()
@@ -43,20 +43,20 @@ class GraphService(BaseServiceSingleton):
                 dst_word, src_word, RelationTypes.TRANSLATE)
 
     def load_from_dictionary(self):
-        map_dic = self.config.src_dst_mapping(self.area)
-        # if self.area == "BinhDinh":
+        map_dic = self.config.src_dst_mapping(self.region)
+        # if self.region == "BinhDinh":
         #     for src, dst in full_path:
         #     full_path = self.config.BinhDinh + "/" + full_path
-        # elif self.area == "GiaLai":
+        # elif self.region == "GiaLai":
         #     full_path = self.config.GiaLai + "/" + full_path
         # else:
         #     full_path = self.config.KonTum + "/" + full_path
-        # for each src, dst in full path: self.config.area + "/" + self.config.src_dst_mapping
+        # for each src, dst in full path: self.config.region + "/" + self.config.src_dst_mapping
         # for src, dst in full_path:
-        #     if self.area == "BinhDinh":
+        #     if self.region == "BinhDinh":
         #         src = self.config.BinhDinh + '/' + src
         #         dst = self.config.BinhDinh + '/' + dst
-        #     elif self.area == "GiaLai":
+        #     elif self.region == "GiaLai":
         #         src = self.config.GiaLai + '/' + src
         #         dst = self.config.GiaLai + '/' + dst
         #     else:
@@ -97,9 +97,9 @@ class GraphService(BaseServiceSingleton):
 
     def load_from_monolingual_corpus(self):
         def load_from_lang_corpus(language):
-            if self.area == "BinhDinh":
+            if self.region == "BinhDinh":
                 appending = "data/" + self.config.BinhDinh + '/'
-            elif self.area == "GiaLai":
+            elif self.region == "GiaLai":
                 appending = "data/" + self.config.GiaLai + '/'
             else:
                 appending = "data/" + self.config.KonTum + '/'
@@ -271,15 +271,15 @@ class GraphService(BaseServiceSingleton):
     def load_graph(self):
         determined_json_graph = ''
         with open('data/cache/info.yaml', 'r+') as f:
-        # if the "area" field is not KonTum then delete
+        # if the "region" field is not KonTum then delete
             data = yaml.safe_load(f)
             src = data.get('SRC', None)
                 
         determined_json_graph = ''
         if src == 'VI':
-            determined_json_graph = 'data/cache/VIBA/{area}-graph.json'.format(area=self.area)
+            determined_json_graph = 'data/cache/VIBA/{region}-graph.json'.format(region=self.region)
         else:
-            determined_json_graph = 'data/cache/BAVI/{area}-graph.json'.format(area=self.area)
+            determined_json_graph = 'data/cache/BAVI/{region}-graph.json'.format(region=self.region)
         if not os.path.exists(determined_json_graph):
             self.load_punctuation()
             self.load_from_dictionary()

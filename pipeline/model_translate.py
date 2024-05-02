@@ -9,8 +9,8 @@ from GraphTranslation.common.languages import Languages
 
 
 class ModelTranslator(BaseServiceSingleton):
-    def __init__(self, area, checkpoint_path: str = ""):
-        super(ModelTranslator, self).__init__(area)
+    def __init__(self, region, checkpoint_path: str = ""):
+        super(ModelTranslator, self).__init__(region)
         if torch.cuda.is_available():
             self.device = "cuda:0"
         else:
@@ -22,7 +22,7 @@ class ModelTranslator(BaseServiceSingleton):
         self.tokenizer = AutoTokenizer.from_pretrained(checkpoint_path)
         self.model = CustomMbartModel.from_pretrained(checkpoint_path).to(self.device)
         self.model = self.model.eval()
-        self.area = area
+        self.region = region
 
     @staticmethod
     def norm_text(line):

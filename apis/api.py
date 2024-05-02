@@ -32,8 +32,8 @@ app.add_middleware(
 app.mount("/to-speech", StaticFiles(directory=os.path.abspath("to-speech")), name="to-speech")
 
 # app.include_router(GraphTranslateRoute().router)
-# read area.yaml file to check for current area. If BinhDinh then keep
-# else delete current area.yaml file
+# read region.yaml file to check for current region. If BinhDinh then keep
+# else delete current region.yaml file
 
 if not os.path.exists('data/cache/'):
     os.mkdir('data/cache/')
@@ -46,12 +46,12 @@ if not os.path.exists('data/cache/BAVI'):
     os.mkdir('data/cache/BAVI/')
 
 delete = False
-determined_json_graph = 'data/cache/VIBA/{area}-graph.json'.format(area='BinhDinh')
+determined_json_graph = 'data/cache/VIBA/{region}-graph.json'.format(region='BinhDinh')
 if os.path.exists(determined_json_graph):
     with open('data/cache/info.yaml', 'r+') as f:
-        # if the "area" field is not BinhDinh then delete
+        # if the "region" field is not BinhDinh then delete
         data = yaml.safe_load(f)
-        area = data.get('area', None)
+        region = data.get('region', None)
         src = data.get('SRC', None)
         dst = data.get('DST', None)
         if src != 'VI' or dst != 'BA':
@@ -61,14 +61,14 @@ if delete:
     if os.path.exists("data/cache/info.yaml"):
         os.remove("data/cache/info.yaml")
 
-yaml.dump({"area": "BinhDinh"}, open("data/cache/info.yaml", "w"))
+yaml.dump({"region": "BinhDinh"}, open("data/cache/info.yaml", "w"))
 # append SRC into info.yaml
 yaml.dump({"SRC": Languages.SRC}, open("data/cache/info.yaml", "a"))
 # append DST into info.yaml
 yaml.dump({"DST": Languages.DST}, open("data/cache/info.yaml", "a"))
 
 datapath = "data/" + 'BinhDinh/'
-# count number of sentences in train, valid, test of the area
+# count number of sentences in train, valid, test of the region
 with open(datapath + Config.src_monolingual_paths[0], "r", encoding='utf-8') as f1:
     src_train_count = len(f1.readlines())
 with open(datapath + Config.src_monolingual_paths[1], "r", encoding='utf-8') as f2:
