@@ -108,9 +108,12 @@ class Config(metaclass=Singleton):
         elif area == self.GiaLai:
             full_path_dst = "data/" + self.GiaLai + "/" + full_path_dst
             full_path_src = "data/" + self.GiaLai + "/" + full_path_src
-        else:
+        elif area == self.KonTum:
             full_path_dst = "data/" + self.KonTum + "/" + full_path_dst
             full_path_src = "data/" + self.KonTum + "/" + full_path_src
+        else:
+            raise NotImplementedError
+            
         #print(full_path_dst, full_path_src)
         if self._dst_words is None or self._src_words is None or self._src_dst_mapping is None:
             all_dst_words = []
