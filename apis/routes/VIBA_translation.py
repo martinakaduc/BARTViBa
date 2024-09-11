@@ -19,12 +19,11 @@ class VIBA_translate(BaseRoute):
         VIBA_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
+        VIBA_translate.region = data.region
+        VIBA_translate.pipeline = Translator(VIBA_translate.region)
         if Languages.SRC == 'BA':
-            VIBA_translate.pipeline = Translator(region=data.region)
-            VIBA_translate.region = data.region
             VIBA_translate.pipelineRev = reverseTrans(region=data.region)
             VIBA_translate.pipelineRev()
-            VIBA_translate.pipeline = Translator(VIBA_translate.region)
 
             if os.path.exists("data/cache/info.yaml"):
                 os.remove("data/cache/info.yaml")
@@ -60,6 +59,26 @@ class VIBA_translate(BaseRoute):
         #print("current region:", VIBA_translate.region)
         #print("addresss of pipeline:", VIBA_translate.pipeline)
         out_str = VIBA_translate.pipeline(data.text, model=data.model)
+        
+        #load dictionary
+        full_path_dict_vi = "data/" + data.region + "/dictionary/dict.vi"
+        full_path_dict_ba = "data/" + data.region + "/dictionary/dict.ba"
+
+        with open(full_path_dict_vi, "r", encoding="utf-8") as f:
+            dict_vi = [line.strip() for line in f.readlines()]
+        with open(full_path_dict_ba, "r", encoding="utf-8") as f:
+            dict_ba = [line.strip() for line in f.readlines()]
+        
+        source_terms = dict_vi
+        target_terms = dict_ba
+        
+        if Languages.SRC == 'BA':
+            source_terms = dict_ba
+            target_terms = dict_vi
+        
+        for source_term, target_term in zip(source_terms, target_terms):
+            out_str = out_str.replace(source_term, target_term)
+        
         #print("Translating data")
         return statusMessage(status=200, 
                              message="Translated successfully", 
