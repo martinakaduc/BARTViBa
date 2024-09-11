@@ -19,11 +19,12 @@ class VIBA_translate(BaseRoute):
         VIBA_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
-        VIBA_translate.region = data.region
-        VIBA_translate.pipeline = Translator(VIBA_translate.region)
         if Languages.SRC == 'BA':
+            VIBA_translate.pipeline = Translator(region=data.region)
+            VIBA_translate.region = data.region
             VIBA_translate.pipelineRev = reverseTrans(region=data.region)
             VIBA_translate.pipelineRev()
+            VIBA_translate.pipeline = Translator(VIBA_translate.region)
 
             if os.path.exists("data/cache/info.yaml"):
                 os.remove("data/cache/info.yaml")
