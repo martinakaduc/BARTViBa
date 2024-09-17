@@ -4,7 +4,7 @@ import os
 
 # from apis.routes.graph_translate import GraphTranslateRoute
 from apis.routes.VIBA_translation import VIBA_translate
-from apis.routes.texttospeech import SpeakRoute
+# from apis.routes.texttospeech import SpeakRoute
 from apis.routes.addword import addWord
 from apis.routes.update import updateWord
 from apis.routes.changeCorpus import changeCorpus
@@ -96,7 +96,7 @@ with open("data/cache/info.yaml", "r") as f:
     print(f.read())
 
 app.include_router(VIBA_translate("BinhDinh").router)
-app.include_router(SpeakRoute().router)
+# app.include_router(SpeakRoute().router)
 app.include_router(addWord("BinhDinh").router)
 app.include_router(updateWord("BinhDinh").router)
 app.include_router(changeCorpus("BinhDinh").router)
