@@ -7,6 +7,18 @@ import yaml
 from GraphTranslation.common.languages import Languages
 from GraphTranslation.config.config import Config
 from pipeline.reverseTranslation import reverseTrans
+from fastapi.responses import JSONResponse
+import re
+
+replaced_marker = "__REPLACED__"
+def replace_term(out_str, source_term, target_term):
+    # Escape ký tự đặc biệt trong source_term để tránh lỗi regex
+    source_term_escaped = re.escape(source_term)
+    
+    # Chỉ thay thế từ nếu nó không chứa dấu hiệu đặc biệt
+    marked_target = f"{target_term}{replaced_marker}"
+    return re.sub(rf'\b{source_term_escaped}\b(?!{replaced_marker})', marked_target, out_str)
+
 
 class VIBA_translate(BaseRoute):
     region: str
@@ -61,7 +73,7 @@ class VIBA_translate(BaseRoute):
         #print("addresss of pipeline:", VIBA_translate.pipeline)
         out_str = VIBA_translate.pipeline(data.text, model=data.model)
         #print("Translating data")
-        
+        print(out_str)
         #load dictionary
         full_path_dict_vi = "data/" + data.region + "/dictionary/dict.vi"
         full_path_dict_ba = "data/" + data.region + "/dictionary/dict.ba"
@@ -78,9 +90,21 @@ class VIBA_translate(BaseRoute):
             source_terms = dict_ba
             target_terms = dict_vi
         
-        for source_term, target_term in zip(source_terms, target_terms):
-            out_str = out_str.replace(source_term, target_term)
+        # Sử dụng regex với từ khóa thay thế tạm thời
+
+        # Tạo từ điển từ hai mảng
+        dictionary = dict(zip(source_terms, target_terms))
+
+        # Sắp xếp từ điển theo độ dài từ gốc (giảm dần)
+        sorted_terms = sorted(dictionary.items(), key=lambda x: len(x[0]), reverse=True)
         
+        # Tiến hành thay thế
+        for source_term, target_term in sorted_terms:
+            out_str = replace_term(out_str, source_term, target_term)
+
+        # Loại bỏ dấu hiệu đặc biệt
+        out_str = out_str.replace(replaced_marker, "")
+        print(out_str)
         return statusMessage(status=200, 
                              message="Translated successfully", 
                              src=data.text, 
@@ -177,4 +201,3 @@ class VIBA_translate(BaseRoute):
         @router.post("/vi_ba")
         async def translate(data: Data):
             return await self.wait(VIBA_translate.translate_func, data)
-
