@@ -10,16 +10,6 @@ from pipeline.reverseTranslation import reverseTrans
 from fastapi.responses import JSONResponse
 import re
 
-replaced_marker = "__REPLACED__"
-def replace_term(out_str, source_term, target_term):
-    # Escape ký tự đặc biệt trong source_term để tránh lỗi regex
-    source_term_escaped = re.escape(source_term)
-    
-    # Chỉ thay thế từ nếu nó không chứa dấu hiệu đặc biệt
-    marked_target = f"{target_term}{replaced_marker}"
-    return re.sub(rf'\b{source_term_escaped}\b(?!{replaced_marker})', marked_target, out_str)
-
-
 class VIBA_translate(BaseRoute):
     region: str
     pipeline: Translator
@@ -31,13 +21,13 @@ class VIBA_translate(BaseRoute):
         VIBA_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
+        Config.load_src_dst_dict(Config(),data.region)
         if Languages.SRC == 'BA':
             VIBA_translate.pipeline = Translator(region=data.region)
             VIBA_translate.region = data.region
             VIBA_translate.pipelineRev = reverseTrans(region=data.region)
             VIBA_translate.pipelineRev()
             VIBA_translate.pipeline = Translator(VIBA_translate.region)
-
             if os.path.exists("data/cache/info.yaml"):
                 os.remove("data/cache/info.yaml")
                 with open("data/cache/info.yaml", "w") as f:
@@ -73,37 +63,7 @@ class VIBA_translate(BaseRoute):
         #print("addresss of pipeline:", VIBA_translate.pipeline)
         out_str = VIBA_translate.pipeline(data.text, model=data.model)
         #print("Translating data")
-        print(out_str)
-        #load dictionary
-        full_path_dict_vi = "data/" + data.region + "/dictionary/dict.vi"
-        full_path_dict_ba = "data/" + data.region + "/dictionary/dict.ba"
-
-        with open(full_path_dict_vi, "r", encoding="utf-8") as f:
-            dict_vi = [line.strip() for line in f.readlines()]
-        with open(full_path_dict_ba, "r", encoding="utf-8") as f:
-            dict_ba = [line.strip() for line in f.readlines()]
-        
-        source_terms = dict_vi
-        target_terms = dict_ba
-        
-        if Languages.SRC == 'BA':
-            source_terms = dict_ba
-            target_terms = dict_vi
-        
-        # Sử dụng regex với từ khóa thay thế tạm thời
-
-        # Tạo từ điển từ hai mảng
-        dictionary = dict(zip(source_terms, target_terms))
-
-        # Sắp xếp từ điển theo độ dài từ gốc (giảm dần)
-        sorted_terms = sorted(dictionary.items(), key=lambda x: len(x[0]), reverse=True)
-        
-        # Tiến hành thay thế
-        for source_term, target_term in sorted_terms:
-            out_str = replace_term(out_str, source_term, target_term)
-
-        # Loại bỏ dấu hiệu đặc biệt
-        out_str = out_str.replace(replaced_marker, "")
+       
         print(out_str)
         return statusMessage(status=200, 
                              message="Translated successfully", 
