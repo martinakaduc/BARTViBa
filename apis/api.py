@@ -14,6 +14,7 @@ from apis.routes.BAVI_translation import BAVI_translate
 from starlette.middleware.cors import CORSMiddleware
 from GraphTranslation.common.languages import Languages
 from GraphTranslation.config.config import Config
+from objects.data import Corpus
 # from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 app = FastAPI()
 
@@ -102,3 +103,13 @@ app.include_router(updateWord("BinhDinh").router)
 app.include_router(changeCorpus("BinhDinh").router)
 app.include_router(deleteWord("BinhDinh").router)
 app.include_router(BAVI_translate("BinhDinh").router)
+
+corpus = changeCorpus("BinhDinh")
+data = Corpus(region="KonTum")
+corpus.change_corpus_func(data)
+
+data.region = "GiaLai"
+corpus.change_corpus_func(data)
+
+data.region = "BinhDinh"
+corpus.change_corpus_func(data)

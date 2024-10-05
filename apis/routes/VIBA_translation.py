@@ -21,7 +21,6 @@ class VIBA_translate(BaseRoute):
         VIBA_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
-        Config.load_src_dst_dict(Config(),data.region)
         if Languages.SRC == 'BA':
             VIBA_translate.pipeline = Translator(region=data.region)
             VIBA_translate.region = data.region
