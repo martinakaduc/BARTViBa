@@ -206,8 +206,7 @@ class Translator(BaseServiceSingleton):
                             else:
                                 result[i] = result[i][0].text
                     print("result",result[i-1])
-                    if i > 0:
-                        if isinstance(result[i-1], str) and (result[i-1].endswith("/@") or result[i-1].endswith("//@")):
+                    if i > 0 and (result[i-1].endswith("/@") or result[i-1].endswith("//@")):
                             result[i] = result[i].capitalize()
             else:
                 result = [res if type(res) == str else res[0].text for res in result]
