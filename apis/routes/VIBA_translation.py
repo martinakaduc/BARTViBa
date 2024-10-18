@@ -21,6 +21,13 @@ class VIBA_translate(BaseRoute):
         VIBA_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
+        if VIBA_translate.region!=data.region:
+            from apis.routes.changeCorpus import changeCorpus  # Nhập ở đây để tránh vòng lặp
+            from objects.data import Corpus
+            corpus_data = Corpus(region=data.region)
+            change_corpus_instance = changeCorpus(region=data.region)  # Tạo instance ở đây
+            change_corpus_instance.change_corpus_func(corpus_data)
+        
         if Languages.SRC == 'BA':
             VIBA_translate.pipeline = Translator(region=data.region)
             VIBA_translate.region = data.region
