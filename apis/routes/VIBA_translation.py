@@ -36,7 +36,7 @@ class VIBA_translate(BaseRoute):
 
         # Chọn pipeline theo region
         VIBA_translate.pipeline = VIBA_translate.pipelines[region]
-        
+        #em mới làm phần VI_BA thôi, còn BA_VI thì chưa chỉnh ạ 
         if Languages.SRC == 'BA':
             VIBA_translate.pipeline = Translator(region=data.region)
             VIBA_translate.region = data.region
