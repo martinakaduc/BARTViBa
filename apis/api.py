@@ -103,13 +103,3 @@ app.include_router(updateWord("BinhDinh").router)
 app.include_router(changeCorpus("BinhDinh").router)
 app.include_router(deleteWord("BinhDinh").router)
 app.include_router(BAVI_translate("BinhDinh").router)
-
-corpus = changeCorpus("BinhDinh")
-data = Corpus(region="KonTum")
-corpus.change_corpus_func(data)
-
-data.region = "GiaLai"
-corpus.change_corpus_func(data)
-
-data.region = "BinhDinh"
-corpus.change_corpus_func(data)

@@ -6,9 +6,9 @@ from GraphTranslation.services.graph_service import GraphService
 from GraphTranslation.services.nlpcore_service import TranslationNLPCoreService
 
 
-class TranslationPipeline(BaseServiceSingleton):   
+class TranslationPipeline():   
     def __init__(self, region):
-        super(TranslationPipeline, self).__init__(region)
+        # super(TranslationPipeline, self).__init__(region)
         self.graph_service = GraphService(region)
         self.nlp_core_service = TranslationNLPCoreService(region)
         self.region = region

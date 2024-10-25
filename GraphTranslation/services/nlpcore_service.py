@@ -610,9 +610,9 @@ class CombinedSrcNLPCoreService(SyllableBasedSrcNLPCoreService):
         return SyllableBasedSentence(new_words)
 
 
-class TranslationNLPCoreService(BaseServiceSingleton):
+class TranslationNLPCoreService():
     def __init__(self, region, is_train=False):
-        super(TranslationNLPCoreService, self).__init__(region)
+        # super(TranslationNLPCoreService, self).__init__(region)
         self.src_service = SyllableBasedSrcNLPCoreService(region) if is_train else SrcNLPCoreService(region)
         self.dst_service = SyllableBasedDstNLPCoreService(region)
         self.src_dict_based_service = SyllableBasedSrcNLPCoreService(region)

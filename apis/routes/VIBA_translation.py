@@ -16,17 +16,26 @@ class VIBA_translate(BaseRoute):
 
     def __init__(self, region):
         super(VIBA_translate, self).__init__(prefix="/translate")
-        VIBA_translate.pipeline = Translator(region=region)
+        # VIBA_translate.pipeline = Translator(region=region)
         VIBA_translate.region = region
+        VIBA_translate.pipelines = {}
+        # Tạo các pipeline sẵn cho mỗi corpus
+        VIBA_translate.pipelines["BinhDinh"] = Translator(region="BinhDinh")
+        VIBA_translate.pipelines["KonTum"] = Translator(region="KonTum")
+        VIBA_translate.pipelines["GiaLai"] = Translator(region="GiaLai")
         VIBA_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
-        if VIBA_translate.region!=data.region:
-            from apis.routes.changeCorpus import changeCorpus  # Nhập ở đây để tránh vòng lặp
-            from objects.data import Corpus
-            corpus_data = Corpus(region=data.region)
-            change_corpus_instance = changeCorpus(region=data.region)  # Tạo instance ở đây
-            change_corpus_instance.change_corpus_func(corpus_data)
+        
+        # Kiểm tra region và chọn pipeline phù hợp
+        region = data.region
+
+        # Nếu region không tồn tại trong danh sách pipeline, trả lỗi
+        if region not in VIBA_translate.pipelines:
+            return statusMessage(status=400, message="Unsupported region")
+
+        # Chọn pipeline theo region
+        VIBA_translate.pipeline = VIBA_translate.pipelines[region]
         
         if Languages.SRC == 'BA':
             VIBA_translate.pipeline = Translator(region=data.region)
