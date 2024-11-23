@@ -8,14 +8,14 @@ sys.path.extend([script_dir, parent_dir, grand_dir])
 
 import time
 import json
-from GraphTranslation.services.base_service import BaseServiceSingleton
+from GraphTranslation.services.base_service import BaseService
 from GraphTranslation.pipeline.translation import TranslationPipeline, Languages, TranslationGraph
 from pipeline.model_translate import ModelTranslator
 from GraphTranslation.common.ner_labels import *
 
-class Translator():
+class Translator(BaseService):
     def __init__(self, region):
-        # super(Translator, self).__init__(region)
+        super(Translator, self).__init__(region)
         self.model_translator = ModelTranslator(region)
         self.graph_translator = TranslationPipeline(region)
         self.graph_translator.eval()
