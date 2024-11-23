@@ -1,17 +1,17 @@
 from GraphTranslation.common.languages import Languages
 from objects.graph import TranslationGraph, Sentence, Path, Chunk, SentCombineWord
 from GraphTranslation.utils.utils import *
-from GraphTranslation.services.base_service import BaseServiceSingleton
+from GraphTranslation.services.base_service import BaseService
 from GraphTranslation.services.graph_service import GraphService
 from GraphTranslation.services.nlpcore_service import TranslationNLPCoreService
 
 
-class TranslationPipeline(BaseServiceSingleton):   
-    def __init__(self, area):
-        super(TranslationPipeline, self).__init__(area)
-        self.graph_service = GraphService(area)
-        self.nlp_core_service = TranslationNLPCoreService(area)
-        self.area = area
+class TranslationPipeline(BaseService):   
+    def __init__(self, region):
+        super(TranslationPipeline, self).__init__(region)
+        self.graph_service = GraphService(region)
+        self.nlp_core_service = TranslationNLPCoreService(region)
+        self.region = region
 
     def add_check_valid_anchor_func(self, func):
         #self.graph_service.check_valid_anchor = func

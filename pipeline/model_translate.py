@@ -3,12 +3,12 @@ from transformers import AutoTokenizer
 import torch
 from functools import lru_cache
 
-from GraphTranslation.services.base_service import BaseServiceSingleton
+from GraphTranslation.services.base_service import BaseService
 from model.custom_mbart_model import CustomMbartModel
 from GraphTranslation.common.languages import Languages
 
 
-class ModelTranslator(BaseServiceSingleton):
+class ModelTranslator(BaseService):
     def __init__(self, region, checkpoint_path: str = ""):
         super(ModelTranslator, self).__init__(region)
         if torch.cuda.is_available():

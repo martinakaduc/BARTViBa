@@ -17,20 +17,20 @@ from apis.routes.VIBA_translation import VIBA_translate
 
 
 class addWord(BaseRoute):
-    def __init__(self, area):
+    def __init__(self, region):
         super(addWord, self).__init__(prefix="/addword")
-        self.area = area
-        self.pipeline = Adder(self.area)
+        self.region = region
+        self.pipeline = Adder(self.region)
 
     def add_word_func(self, data: AddData):
         with open('data/cache/info.yaml', 'r+') as f:
-            # if the "area" field is not KonTum then delete
+            # if the "region" field is not KonTum then delete
             dt = yaml.safe_load(f)
-            area = dt.get('area', None)
-            self.area = area
+            region = dt.get('region', None)
+            self.region = region
         success = self.pipeline(data.word, data.translation, data.fromVI)
         if success:
-            VIBA_translate.changePipelineRemoveGraph(area=self.area)
+            VIBA_translate.changePipelineRemoveGraph(region=self.region)
             return statusMessage(200,"Words added successfully","", Languages.SRC == 'VI')        
         else:
             return statusMessage(400,"Words already exists","",Languages.SRC == 'VI')

@@ -8,12 +8,12 @@ sys.path.extend([script_dir, parent_dir, grand_dir])
 
 import time
 import json
-from GraphTranslation.services.base_service import BaseServiceSingleton
+from GraphTranslation.services.base_service import BaseService
 from GraphTranslation.pipeline.translation import TranslationPipeline, Languages, TranslationGraph
 from pipeline.model_translate import ModelTranslator
 from GraphTranslation.common.ner_labels import *
 
-class Translator(BaseServiceSingleton):
+class Translator(BaseService):
     def __init__(self, region):
         super(Translator, self).__init__(region)
         self.model_translator = ModelTranslator(region)
@@ -205,8 +205,9 @@ class Translator(BaseServiceSingleton):
                                 result[i] = ''
                             else:
                                 result[i] = result[i][0].text
-                    if i > 0 and result[i-1].endswith("/@") or result[i-1].endswith("//@"):
-                        result[i] = result[i].capitalize()
+                    print("result",result[i-1])
+                    if i > 0 and (result[i-1].endswith("/@") or result[i-1].endswith("//@")):
+                            result[i] = result[i].capitalize()
             else:
                 result = [res if type(res) == str else res[0].text for res in result]
                 

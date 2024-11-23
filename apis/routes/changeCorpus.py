@@ -16,18 +16,18 @@ from GraphTranslation.common.languages import Languages
 
 
 class changeCorpus(BaseRoute):
-    def __init__(self, area):
+    def __init__(self, region):
         super(changeCorpus, self).__init__(prefix="/changeCorpus")
-        self.pipeline = ChangeCorpus(area)
-        self.area = area
+        self.pipeline = ChangeCorpus(region)
+        self.region = region
 
     def change_corpus_func(self, data: Corpus):
-        self.pipeline(data.area)
+        self.pipeline(data.region)
         if Languages.SRC == 'VI':
-            VIBA_translate.changePipeline(area=data.area)
+            VIBA_translate.changePipeline(region=data.region)
         else:
-            BAVI_translate.changePipeline(area=data.area)
-        return statusMessage(200,f"Corpus changed successfully to {data.area}","","", Languages.SRC == 'VI')
+            BAVI_translate.changePipeline(region=data.region)
+        return statusMessage(200,f"Corpus changed successfully to {data.region}","","", Languages.SRC == 'VI')
         
     def create_routes(self):
         router = self.router

@@ -99,16 +99,16 @@ class Config(metaclass=Singleton):
     def upper_start_chars(text):
         return " ".join([item.capitalize() for item in text.split()])
 
-    def load_src_dst_dict(self, area):
+    def load_src_dst_dict(self, region):
         full_path_dst = self.dst_words_paths
         full_path_src = self.src_words_paths
-        if area == self.BinhDinh:
+        if region == self.BinhDinh:
             full_path_dst = "data/" + self.BinhDinh + "/" + full_path_dst
             full_path_src = "data/" + self.BinhDinh + "/" + full_path_src
-        elif area == self.GiaLai:
+        elif region == self.GiaLai:
             full_path_dst = "data/" + self.GiaLai + "/" + full_path_dst
             full_path_src = "data/" + self.GiaLai + "/" + full_path_src
-        elif area == self.KonTum:
+        elif region == self.KonTum:
             full_path_dst = "data/" + self.KonTum + "/" + full_path_dst
             full_path_src = "data/" + self.KonTum + "/" + full_path_src
         else:
@@ -152,31 +152,31 @@ class Config(metaclass=Singleton):
             self.load_syn_word_set()
 
     #@property
-    def dst_words(self, area):
-        self.load_src_dst_dict(area)
+    def dst_words(self, region):
+        self.load_src_dst_dict(region)
         dst_dict = self.dst_syn_words
         dst_words = list(dst_dict.keys()) + \
             [w for w_list in dst_dict.values() for w in w_list]
         return self._dst_words + dst_words
 
     #@property
-    def src_words(self, area):
-        self.load_src_dst_dict(area)
+    def src_words(self, region):
+        self.load_src_dst_dict(region)
         # syn_dict = self.src_syn_words
         # syn_words = list(syn_dict.keys()) + [w for w_list in syn_dict.values() for w in w_list]
         # return self._src_words + syn_words
         return self._src_words
 
     #@property
-    def dst_word_set(self, area):
-        return set(self.dst_words(area))
+    def dst_word_set(self, region):
+        return set(self.dst_words(region))
 
     #@property
-    def src_word_set(self, area):
-        return set(self.src_words(area))
+    def src_word_set(self, region):
+        return set(self.src_words(region))
 
     #@property
-    def src_dst_mapping(self, area):
-        self.load_src_dst_dict(area)
+    def src_dst_mapping(self, region):
+        self.load_src_dst_dict(region)
         #print(dict(self._src_dst_mapping))
         return self._src_dst_mapping
