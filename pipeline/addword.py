@@ -11,15 +11,15 @@ sys.path.extend([script_dir, parent_dir, grand_dir])
 
 
 class Adder(BaseServiceSingleton):
-    def __init__(self, area):
-        super(Adder, self).__init__(area=area)
+    def __init__(self, region):
+        super(Adder, self).__init__(region=region)
         self.vi = []
         self.ba = []
-        self.area = area
+        self.region = region
 
     def add_word_func(self, word, translation, fromVI):
-        full_path_dict_vi = "data/" + self.area + "/dictionary/dict.vi"
-        full_path_dict_ba = "data/" + self.area + "/dictionary/dict.ba"
+        full_path_dict_vi = "data/" + self.region + "/dictionary/dict.vi"
+        full_path_dict_ba = "data/" + self.region + "/dictionary/dict.ba"
 
         flag = False
         with open(full_path_dict_vi, "r", encoding="utf-8") as f:

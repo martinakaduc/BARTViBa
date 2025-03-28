@@ -12,31 +12,31 @@ from pipeline.translation import Translator
 from objects.singleton import Singleton
 
 class ChangeCorpus(BaseServiceSingleton):
-    def __init__(self, area):
-        super(ChangeCorpus, self).__init__(area=area)
-        self.area = area
+    def __init__(self, region):
+        super(ChangeCorpus, self).__init__(region=region)
+        self.region = region
 
     def changeCorpus(self, changeTo):
         if os.path.exists("data/cache/info.yaml"):
             with open("data/cache/info.yaml", "r", encoding="utf-8") as f:
-                # take "area" key from info.yaml
+                # take "region" key from info.yaml
                 data = yaml.safe_load(f)
-                area = data.get('area', None)
-                if area == changeTo:
+                region = data.get('region', None)
+                if region == changeTo:
                     return
         
         for cls in dict(Singleton._instances).keys():
             del Singleton._instances[cls]
             cls = None
             
-        self.area = changeTo
+        self.region = changeTo
 
     def __call__(self, changeTo):
         res = self.changeCorpus(changeTo=changeTo)
         return res
 
 if __name__ == "__main__":
-    translator = Translator(area="BinhDinh")
+    translator = Translator(region="BinhDinh")
     print(translator("Đồng tiền là vô giá"))
     changeDictCorpus = ChangeCorpus("Gia Lai")
     newTranslator = changeDictCorpus.changeCorpus("GiaLai")

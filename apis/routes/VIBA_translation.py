@@ -9,32 +9,32 @@ from GraphTranslation.config.config import Config
 from pipeline.reverseTranslation import reverseTrans
 
 class VIBA_translate(BaseRoute):
-    area: str
+    region: str
     pipeline: Translator
 
-    def __init__(self, area):
+    def __init__(self, region):
         super(VIBA_translate, self).__init__(prefix="/translate")
-        VIBA_translate.pipeline = Translator(area=area)
-        VIBA_translate.area = area
-        VIBA_translate.pipelineRev = reverseTrans(area=area)
+        VIBA_translate.pipeline = Translator(region=region)
+        VIBA_translate.region = region
+        VIBA_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
         if Languages.SRC == 'BA':
-            VIBA_translate.pipeline = Translator(area=data.area)
-            VIBA_translate.area = data.area
-            VIBA_translate.pipelineRev = reverseTrans(area=data.area)
+            VIBA_translate.pipeline = Translator(region=data.region)
+            VIBA_translate.region = data.region
+            VIBA_translate.pipelineRev = reverseTrans(region=data.region)
             VIBA_translate.pipelineRev()
-            VIBA_translate.pipeline = Translator(VIBA_translate.area)
+            VIBA_translate.pipeline = Translator(VIBA_translate.region)
 
             if os.path.exists("data/cache/info.yaml"):
                 os.remove("data/cache/info.yaml")
                 with open("data/cache/info.yaml", "w") as f:
-                    yaml.dump({"area": VIBA_translate.area}, f)
+                    yaml.dump({"region": VIBA_translate.region}, f)
                     yaml.dump({"SRC": Languages.SRC}, f)
                     yaml.dump({"DST": Languages.DST}, f)
-                    # count number of sentences in train, valid, test of the area
-                    datapath = "data/" + VIBA_translate.area + '/'
-                    # count number of sentences in train, valid, test of the area
+                    # count number of sentences in train, valid, test of the region
+                    datapath = "data/" + VIBA_translate.region + '/'
+                    # count number of sentences in train, valid, test of the region
                     with open(datapath + Config.src_monolingual_paths[0], "r", encoding='utf-8') as f1:
                         src_train_count = len(f1.readlines())
                     with open(datapath + Config.src_monolingual_paths[1], "r", encoding='utf-8') as f2:
@@ -57,7 +57,7 @@ class VIBA_translate(BaseRoute):
                             "dst_test": dst_test_count
                         }, f)
                 print(open("data/cache/info.yaml", "r").read())
-        #print("current area:", VIBA_translate.area)
+        #print("current region:", VIBA_translate.region)
         #print("addresss of pipeline:", VIBA_translate.pipeline)
         out_str = VIBA_translate.pipeline(data.text, model=data.model)
         #print("Translating data")
@@ -68,21 +68,21 @@ class VIBA_translate(BaseRoute):
                              fromVI=(Languages.SRC == 'VI'))
     
     @staticmethod
-    def changePipelineRemoveGraph(area: str):
-        determined_json_graph = 'data/cache/VIBA/{area}-graph.json'.format(area=area)
+    def changePipelineRemoveGraph(region: str):
+        determined_json_graph = 'data/cache/VIBA/{region}-graph.json'.format(region=region)
         if os.path.exists(determined_json_graph):
             os.remove(determined_json_graph)
         
         if os.path.exists("data/cache/info.yaml"):
             os.remove("data/cache/info.yaml")
             with open("data/cache/info.yaml", "w") as f:
-                yaml.dump({"area": VIBA_translate.area}, f)
+                yaml.dump({"region": VIBA_translate.region}, f)
                 yaml.dump({"SRC": Languages.SRC}, f)
                 yaml.dump({"DST": Languages.DST}, f)
 
-                # count number of sentences in train, valid, test of the area
-                datapath = "data/" + VIBA_translate.area + '/'
-                # count number of sentences in train, valid, test of the area
+                # count number of sentences in train, valid, test of the region
+                datapath = "data/" + VIBA_translate.region + '/'
+                # count number of sentences in train, valid, test of the region
                 with open(datapath + Config.src_monolingual_paths[0], "r", encoding='utf-8') as f1:
                     src_train_count = len(f1.readlines())
                 with open(datapath + Config.src_monolingual_paths[1], "r", encoding='utf-8') as f2:
@@ -108,21 +108,21 @@ class VIBA_translate(BaseRoute):
 
             print(open("data/cache/info.yaml", "r").read())
         
-        VIBA_translate.area = area
-        VIBA_translate.pipeline = Translator(area)
+        VIBA_translate.region = region
+        VIBA_translate.pipeline = Translator(region)
 
     @staticmethod
-    def changePipeline(area: str):
+    def changePipeline(region: str):
         if os.path.exists("data/cache/info.yaml"):
             os.remove("data/cache/info.yaml")
             with open("data/cache/info.yaml", "w") as f:
-                yaml.dump({"area": VIBA_translate.area}, f)
+                yaml.dump({"region": VIBA_translate.region}, f)
                 yaml.dump({"SRC": Languages.SRC}, f)
                 yaml.dump({"DST": Languages.DST}, f)
 
-                # count number of sentences in train, valid, test of the area
-                datapath = "data/" + VIBA_translate.area + '/'
-                # count number of sentences in train, valid, test of the area
+                # count number of sentences in train, valid, test of the region
+                datapath = "data/" + VIBA_translate.region + '/'
+                # count number of sentences in train, valid, test of the region
                 with open(datapath + Config.src_monolingual_paths[0], "r", encoding='utf-8') as f1:
                     src_train_count = len(f1.readlines())
                 with open(datapath + Config.src_monolingual_paths[1], "r", encoding='utf-8') as f2:
@@ -148,8 +148,8 @@ class VIBA_translate(BaseRoute):
 
             print(open("data/cache/info.yaml", "r").read())
 
-        VIBA_translate.area = area
-        VIBA_translate.pipeline = Translator(area)
+        VIBA_translate.region = region
+        VIBA_translate.pipeline = Translator(region)
 
     def create_routes(self):
         router = self.router

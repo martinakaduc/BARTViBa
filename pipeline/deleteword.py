@@ -15,15 +15,15 @@ from GraphTranslation.common.languages import Languages
 
 
 class DeleteWord(BaseServiceSingleton):
-    def __init__(self, area):
-        super(DeleteWord, self).__init__(area=area)
+    def __init__(self, region):
+        super(DeleteWord, self).__init__(region=region)
         self.vi = []
         self.ba = []
-        self.area = area
+        self.region = region
 
     def remove_word(self, word, fromVI):
-        full_path_dict_vi = "data/" + self.area + "/dictionary/dict.vi"
-        full_path_dict_ba = "data/" + self.area + "/dictionary/dict.ba"
+        full_path_dict_vi = "data/" + self.region + "/dictionary/dict.vi"
+        full_path_dict_ba = "data/" + self.region + "/dictionary/dict.ba"
 
         flag = False
         with open(full_path_dict_vi, "r", encoding="utf-8") as f:
