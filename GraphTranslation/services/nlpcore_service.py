@@ -8,7 +8,7 @@ from vncorenlp import VnCoreNLP
 from GraphTranslation.common.languages import Languages
 from GraphTranslation.common.ner_labels import *
 from objects.graph import SentWord, Sentence, SyllableBasedSentence, SentCombineWord
-from GraphTranslation.services.base_service import BaseServiceSingleton
+from GraphTranslation.services.base_service import BaseServiceSingleton, BaseService
 from GraphTranslation.utils.utils import check_number
 
 import re
@@ -610,7 +610,7 @@ class CombinedSrcNLPCoreService(SyllableBasedSrcNLPCoreService):
         return SyllableBasedSentence(new_words)
 
 
-class TranslationNLPCoreService(BaseServiceSingleton):
+class TranslationNLPCoreService(BaseService):
     def __init__(self, region, is_train=False):
         super(TranslationNLPCoreService, self).__init__(region)
         self.src_service = SyllableBasedSrcNLPCoreService(region) if is_train else SrcNLPCoreService(region)
