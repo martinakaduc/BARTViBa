@@ -9,7 +9,7 @@ import numpy as np
 from GraphTranslation.common.languages import Languages
 from GraphTranslation.common.data_types import RelationTypes
 from objects.graph import Graph, Word, Sentence, SentWord, Path, TranslationGraph, Relation
-from GraphTranslation.services.base_service import BaseServiceSingleton
+from GraphTranslation.services.base_service import BaseService
 from GraphTranslation.services.nlpcore_service import TranslationNLPCoreService
 # from GraphTranslation.utils.utils import word_distance
 # common_keys.py
@@ -19,7 +19,7 @@ from GraphTranslation.services.nlpcore_service import TranslationNLPCoreService
 # import pickle, codecs
 
 
-class GraphService(BaseServiceSingleton):
+class GraphService(BaseService):
     def __init__(self, region):
         super(GraphService, self).__init__(region)
         self.graph = Graph()

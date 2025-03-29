@@ -10,23 +10,23 @@ from GraphTranslation.common.languages import Languages
 
 
 class updateWord(BaseRoute):
-    def __init__(self, area):
+    def __init__(self, region):
         super(updateWord, self).__init__(prefix="/updateword")
-        self.area = area
-        self.pipeline = Update(self.area)
+        self.region = region
+        self.pipeline = Update(self.region)
 
     def update_word(self, data: ModifyData):
         with open('data/cache/info.yaml', 'r+') as f:
-            # if the "area" field is not KonTum then delete
+            # if the "region" field is not KonTum then delete
             dt = yaml.safe_load(f)
-            area = dt.get('area', None)
-            self.area = area
+            region = dt.get('region', None)
+            self.region = region
         success = self.pipeline(data.word, data.translation, data.fromVI)
         if success:
             if Languages.SRC == 'VI':
-                VIBA_translate.changePipelineRemoveGraph(area=self.area)
+                VIBA_translate.changePipelineRemoveGraph(region=self.region)
             else:
-                BAVI_translate.changePipelineRemoveGraph(area=self.area)
+                BAVI_translate.changePipelineRemoveGraph(region=self.region)
             return statusMessage(200,"Word updated successfully","", Languages.SRC == 'VI')
         else:
             return statusMessage(400,"Word not found","",Languages.SRC == 'VI')

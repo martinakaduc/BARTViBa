@@ -7,6 +7,8 @@ import yaml
 from GraphTranslation.common.languages import Languages
 from GraphTranslation.config.config import Config
 from pipeline.reverseTranslation import reverseTrans
+from fastapi.responses import JSONResponse
+import re
 
 class VIBA_translate(BaseRoute):
     region: str
@@ -14,18 +16,33 @@ class VIBA_translate(BaseRoute):
 
     def __init__(self, region):
         super(VIBA_translate, self).__init__(prefix="/translate")
-        VIBA_translate.pipeline = Translator(region=region)
+        # VIBA_translate.pipeline = Translator(region=region)
         VIBA_translate.region = region
+        VIBA_translate.pipelines = {}
+        # Tạo các pipeline sẵn cho mỗi corpus
+        VIBA_translate.pipelines["BinhDinh"] = Translator(region="BinhDinh")
+        VIBA_translate.pipelines["KonTum"] = Translator(region="KonTum")
+        VIBA_translate.pipelines["GiaLai"] = Translator(region="GiaLai")
         VIBA_translate.pipelineRev = reverseTrans(region=region)
 
     def translate_func(data: Data):
+        
+        # Kiểm tra region và chọn pipeline phù hợp
+        region = data.region
+
+        # Nếu region không tồn tại trong danh sách pipeline, trả lỗi
+        if region not in VIBA_translate.pipelines:
+            return statusMessage(status=400, message="Unsupported region")
+
+        # Chọn pipeline theo region
+        VIBA_translate.pipeline = VIBA_translate.pipelines[region]
+        #em mới làm phần VI_BA thôi, còn BA_VI thì chưa chỉnh ạ 
         if Languages.SRC == 'BA':
             VIBA_translate.pipeline = Translator(region=data.region)
             VIBA_translate.region = data.region
             VIBA_translate.pipelineRev = reverseTrans(region=data.region)
             VIBA_translate.pipelineRev()
             VIBA_translate.pipeline = Translator(VIBA_translate.region)
-
             if os.path.exists("data/cache/info.yaml"):
                 os.remove("data/cache/info.yaml")
                 with open("data/cache/info.yaml", "w") as f:
@@ -61,6 +78,8 @@ class VIBA_translate(BaseRoute):
         #print("addresss of pipeline:", VIBA_translate.pipeline)
         out_str = VIBA_translate.pipeline(data.text, model=data.model)
         #print("Translating data")
+       
+        print(out_str)
         return statusMessage(status=200, 
                              message="Translated successfully", 
                              src=data.text, 
@@ -157,4 +176,3 @@ class VIBA_translate(BaseRoute):
         @router.post("/vi_ba")
         async def translate(data: Data):
             return await self.wait(VIBA_translate.translate_func, data)
-
